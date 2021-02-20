@@ -1,0 +1,26 @@
+{
+    "name": "hsteeb/osis2html",
+    "description": "osis to HTML converter",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "HSteeb\\osis2html\\": "src/"
+         }
+    },
+    "require": {
+        "php": ">=7.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5"
+    },
+    "scripts": {
+      "test": "vendor/phpunit/phpunit/phpunit"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "HSteeb",
+            "email": "hs2013@bible2.net"
+        }
+    ]
+}
