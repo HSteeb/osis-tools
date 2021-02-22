@@ -11,16 +11,10 @@ class Converter
   private static $chapterStart_1number;
   private static $Replacer;
 
-  function init()
-  {
-    self::$q                    = "['\"]";
-    self::$eq                   = "\s*=\s*";
-    self::$chapterStart_1number = "<chapter\b[^>]*?\bsID" . self::$eq . self::$q . "\s*\w+\.(\d+)\s*" . self::$q . "[^>]*>";
-    self::$Replacer = new Replacer();
-  }
   static function run($infile, $outfile)
   {
     try {
+      self::$Replacer = new Replacer();
       $osis = file_get_contents($infile);
       echo "Loaded $infile\n";
       $html = self::convert($osis);
@@ -53,10 +47,7 @@ class Converter
     $cssPath = "styles.css"; # importer for bootstrap + style.css
 #    $cssPath = "/css/style.css";
 #    $cssPath = "/steeb/bible2.net/impl/css/style.css";
-    $title = "";
-    if (preg_match("@<title[^>]*>\s*(.*?)\s*</title>@su", $osis, $Matches)) {
-      $title = $Matches[1];
-    }
+    $title = self::$Replacer->getTitle($osis);
     return <<<EOHEADER
 <html>
 <head>
@@ -74,9 +65,8 @@ EOHEADER;
   private static function getBody($osis)
   {
     $html = "";
-    if (preg_match("@</header\s*>\s*(.*?)(<chapter.*?)</osisText\s*>@su", $osis, $Matches)) {
-      $prolog = $Matches[1];
-      $text   = $Matches[2];
+    list ($prolog, $text) = self::$Replacer->splitPrologAndText($osis);
+    if ($prolog && $text) {
       $html =
         self::getProlog($prolog, $text)
       . self::getChapters($text)
@@ -93,135 +83,33 @@ EOHEADER;
    */
   private static function getProlog($prolog, $text)
   {
-    $q                          = "['\"]";
-    $eq                         = "\s*=\s*";
-
-    # change list + head to <h.> + list
-    $prolog = preg_replace("@(<list[^>]*>)\s*<head[^>]*>\s*(.*?)\s*</head\s*>@us", "<h2>$2</h2>\n$1", $prolog);
-
-    # change div.type=outline to div.class=outline
-    $prolog = preg_replace("@\s*<div[^>]*?type${eq}${q}\s*outline\s*${q}[^>]*>\s*@su", "\n<div class=\"outline\">\n", $prolog);
-
-    # drop tags: milestone
-    $prolog = preg_replace("@</?(milestone)[^>]*>@su", "", $prolog);
-
-    # replace tags
-    $prolog = preg_replace("@<(/?)list\b[^>]*>@su", "<$1ul>", $prolog);
-    $prolog = preg_replace("@<(/?)item\b[^>]*>@su", "<$1li>", $prolog);
-
-    # p
-    $prolog = preg_replace("@<p\b[^>]*>@su", "<p class='e'>", $prolog);
-    $prolog = preg_replace("@</p\s*>@su", "</p>", $prolog);
+    $prolog = self::$Replacer->convertIntroductionP($prolog);
+    $prolog = self::$Replacer->convertList($prolog);
+    $prolog = self::$Replacer->dropMilestones($prolog);
+    $prolog = self::$Replacer->convertOutlineDiv($prolog);
 
     # compute toc
-    $booksToc = self::getBooksToc();
-    $chaptersToc = self::$Replacer->getChaptersToc($text);
-    # toc + title.runningHead (after processing p), set target #bb for book links (cf. NeUe: below book toc)
-    $prolog = preg_replace(
-        "@<(title)\b[^>]*runningHead[^>]*>(.*?)</\\1\s*>@su"
-      , $booksToc
-        . "<p id=\"bb\" class='u0'>$2</p>\n"
-        . $chaptersToc
-      , $prolog
-      );
-
-
-    # reference
-    $prolog = preg_replace("@<reference\b[^>]*>@su", "<span class='ref'>", $prolog);
-    $prolog = preg_replace("@</reference\s*>@su", "</span>", $prolog);
-
-    # drop remaining titles
-    $prolog = preg_replace("@</?(title)[^>]*>.*?</\\1\s*>@su", "", $prolog);
-
-    # cleanup
-    $prolog = preg_replace("@(</li>)(</ul>)@su", "$1\n$2", $prolog);
+    $booksToc    = self::$Replacer->formatBooksToc(self::enBookNames(), "Mt", "Old Testament", "New Testament", "bb");
+    $ChapterNumbers = self::$Replacer->getChapterNumbers($text);
+    $chaptersToc = self::$Replacer->formatChapterNumbersToc($ChapterNumbers);
+    $prolog = self::$Replacer->insertTocs($prolog, $booksToc, $chaptersToc);
 
     return $prolog;
   }
 
-  private static function getBooksToc()
-  {
-    $BOOKNAMES = self::enBookNames();
-
-    $res = "<p class=\"u3 bookLinks\">Old Testament</p>\n<p>\n";
-    foreach ($BOOKNAMES as $normBookName => $bookName) {
-      if ($normBookName == "Mt") {
-        $res = "</p>\n<p class=\"u3\">New Testament</p>\n<p>\n";
-      }
-      $res .= "<a href=\"$normBookName.html#bb\">" . $bookName . "</a>\n";
-    }
-    $res .= "</p>\n";
-    return $res;
-  }
-
   private static function getChapters($text)
   {
-    $q                          = self::$q;
-    $eq                         = self::$eq;
-    $chapterEnd                 = "<chapter\b[^>]*?\beID[^>]*>";
-    $verseStart                 = "<verse\b[^>]*?\bsID\s*[^>]*>";
-    $verseEnd                   = "<verse\b[^>]*?\beID[^>]*>";
-    $sID_1chapter_2verse        = "\w+\.(\d+)\.(\d+)\s*${q}";
-    $divSectionStart            = "<div\b[^>]*?\btype${eq}${q}\s*section\s*${q}[^>]*>";
-    $divEnd                     = "</div\b[^>]*>";
-    $containerStart             = "<(?:p|l)\b[^>]*>";
-    $titleElement_1title        = "<title\b[^>]*>(.*?)</title\b\s*>";
-    $lgStart                    = "<lg\b[^>]*>";
-    $lStart                     = "<l\b[^>]*>";
-    $lEnd                       = "</l\b\s*>";
-    $lgEnd                      = "</lg\b\s*>";
-    $noteElement_1contents      = "<note\b[^>]*>(.*?)</note\b\s*>";
-    $noteContainerEnd           = "</(?:lg|p)\s*>";
-    $referenceElement_1contents = "<reference\b[^>]*>(.*?)</reference\b\s*>";
-    $catchWordElement_1contents = "<catchWord\b[^>]*>(.*?)</catchWord\b\s*>";
 
-    # swap chapter.sID <=> div.type=section
-    $text = preg_replace("@(" . self::$chapterStart_1number . ")\s*($divSectionStart\s*$titleElement_1title)@su", "$3\n$1", $text);
+    $text = self::$Replacer->convertChapterTags($text);
+    $text = self::$Replacer->moveVerseStart($text);
 
-    # div.section
-    $text = preg_replace("@$divSectionStart\s*$titleElement_1title@su", "<h4>$1</h4>", $text);
-    # drop /div
-    $text = preg_replace("@$divEnd@", "", $text);
+    $text = self::$Replacer->convertVerseStart($text);
 
-    # change chapter.sID to p.kap, set chapter id #i
-    $text = preg_replace("@" . self::$chapterStart_1number . "@su", "<p id=\"$1\" class='kap'><a href=\"#top\">$1</a></p>", $text);
+    $text = self::$Replacer->dropEndTags($text);
 
-    # move verse.sID into following <p> or <l>
-    $text = preg_replace("@($verseStart)\s*($containerStart)@su", "$2$1", $text);
-
-    # drop chapter.eID
-    $text = preg_replace("@$chapterEnd@su", "", $text);
-
-    # change verse.sID to span.vers
-    #$text = preg_replace("@$verseStart_1chapter_2verse@su", "<span class='vers'>$2</span> ", $text);
-
-    $text = self::$Replacer->getVerseStart($text);
-
-    # drop verse.eID
-    $text = preg_replace("@$verseEnd@su", "", $text);
-
-    # move note behind next </lg> or </p>
-    $text = preg_replace("@($noteElement_1contents)(.*?)($noteContainerEnd)@su", "$3$4\n$1", $text);
-
-    # change note to div
-    $text = preg_replace_callback("@$noteElement_1contents@su",
-      function($Matches) use ($referenceElement_1contents, $catchWordElement_1contents) {
-        $content = $Matches[1];
-        $content = preg_replace("@$referenceElement_1contents\s*(?:$catchWordElement_1contents)?(.*)@su"
-        , "<div class=\"fn\">$1 " . ("$2" ? "<em>$2</em>" : "") . "$3</div>\n"
-        , $content);
-        return $content;
-      }
-      , $text);
-
-    # change lg + l to p with br
-    $text = preg_replace_callback("@$lgStart\s*(.*?)$lgEnd@su",
-      function($Matches) use ($lStart, $lEnd) {
-        $content = $Matches[1];
-        $ok = preg_match_all("@$lStart\s*(.*?)$lEnd@su", $content, $Matches,  PREG_PATTERN_ORDER);
-        return $ok === false ? "" : "<p class=\"poet\">" . implode("<br/>", $Matches[1]) . "</p>";
-      }
-      , $text);
+    $text = self::$Replacer->moveNote($text);
+    $text = self::$Replacer->convertNote($text);
+    $text = self::$Replacer->convertLg($text);
 
     return $text;
   }
@@ -306,7 +194,7 @@ EOFOOTER;
       , "2J" => "2 John"
       , "3J" => "3 John"
       , "Jd" => "Jude"
-      , "Ap" => "Revelation"
+      , "Ap" => " "
     ];
   }
 }

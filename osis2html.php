@@ -14,7 +14,6 @@ Usage:
 EOUSAGE;
   exit;
 }
-Converter::init();
 $infile  = $argv[1];
 $outfile = $argv[2];
 

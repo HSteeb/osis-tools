@@ -14,7 +14,10 @@
         "phpunit/phpunit": "^9.5"
     },
     "scripts": {
-      "test": "vendor/phpunit/phpunit/phpunit"
+      "test": "vendor/bin/phpunit"
+    , "itest": "mkdir -p /tmp/osis2htmltest && php osis2html.php itest/src/Gn.xml /tmp/osis2htmltest/Gn.html && diff -r itest/ref /tmp/osis2htmltest"
+    , "idiff": "diff -r itest/ref /tmp/osis2htmltest"
+    , "isave": "cp -a /tmp/osis2htmltest/* itest/ref/"
     },
     "license": "MIT",
     "authors": [

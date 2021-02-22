@@ -5,17 +5,12 @@ namespace HSteeb\osis2html;
 
 class Replacer
 {
-  private $SEP = ","; # chapter to verse number separator
-  private $q;
-  private $eq;
-  private $chapterStart_1number;
-
-  function __construct()
-  {
-    $this->q                    = "['\"]";
-    $this->eq                   = "\s*=\s*";
-    $this->chapterStart_1number = "<chapter\b[^>]*?\bsID" . $this->eq . $this->q . "\s*\w+\.(\d+)\s*" . $this->q . "[^>]*>";
-  }
+  private $sep          = ","; # chapter to verse number separator, TODO pass parameter
+  private const Q       = "['\"]";
+  private const EQ      = "\s*=\s*";
+  private const TAGREST = "[^>]*>";
+  private const CHAPTERSTART_1NUMBER = "<chapter\b[^>]*?\bsID" . self::EQ . self::Q . "\s*\w+\.(\d+)\s*" . self::Q . "[^>]*>";
+  private const NOTEELEMENT_1CONTENTS = "<note\b" . self::TAGREST . "(.*?)</note\b\s*>";
 
   /**
    * @param {String} $text OSIS text
@@ -25,12 +20,10 @@ class Replacer
    *     * <span id="14v10"/><span id="14v11/><span class="vers">10–11</span>`
    *     * <span id="14v10"/><span id="15v1/><span class="vers">14,10–15,1</span>`
    */
-  function getVerseStart($text)
+  function convertVerseStart($text)
   {
-    $q                          = "['\"]";
-    $eq                         = "\s*=\s*";
     $attrVal_1chapter_2verse    = "\w+\.(\d+)\.(\d+)";
-    $verseStart_1sIDValue       = "<verse\b[^>]*?\bsID${eq}${q}\s*(.*?)\s*${q}[^>]*>";
+    $verseStart_1sIDValue       = "<verse\b[^>]*?\bsID" . self::EQ . self::Q . "\s*(.*?)\s*" . self::Q . self::TAGREST;
     #echo "\n-------------\n0: text=$text\n";
 
     # analyze one <verse...> start tag
@@ -86,7 +79,7 @@ class Replacer
               throw new \Exception("Descending chapter numbers $chapter/$followChapter in sID of $tag");
             }
             # first and last verse number in different chapters: add span with range of chapter+verse pairs
-            $res .= "<span class=\"vers\">$chapter" . $this->SEP . "${verse}–$followChapter" . $this->SEP . "$followVerse</span> ";
+            $res .= "<span class=\"vers\">$chapter" . $this->sep . "${verse}–$followChapter" . $this->sep . "$followVerse</span> ";
           }
           return $res;
         }
@@ -96,18 +89,23 @@ class Replacer
     return $text;
   }
 
-  function getChaptersToc($text)
+  function getChapterNumbers($text)
   {
     #echo "a: getChaptersToc($text)\n";
-    $ok = preg_match_all("@" . $this->chapterStart_1number . "@su", $text, $Matches, PREG_PATTERN_ORDER);
-    if ($ok === false) {
-      #echo "b: getChaptersToc ok = false\n";
+
+    $ok = preg_match_all("@" . self::CHAPTERSTART_1NUMBER . "@su", $text, $Matches, PREG_PATTERN_ORDER);
+    return ($ok === false) ? null : $Matches[1];
+  }
+
+  function formatChapterNumbersToc($ChapterNumbers)
+  {
+    if (!$ChapterNumbers) {
       return "";
     }
     $res = "<p class=\"chapterLinks\">\n";
     #echo "c: getChaptersToc Matches = " . print_r($Matches, true) . "\n";
     $i = 0;
-    foreach ($Matches[1] as $chapterNumber) {
+    foreach ($ChapterNumbers as $chapterNumber) {
       #echo "d: ChapterMatch = " . print_r($ChapterMatch, true) . "\n";
       $res .= "<a href=\"#$chapterNumber\">" . $chapterNumber . "</a>";
       if (++$i == 10) {
@@ -119,6 +117,194 @@ class Replacer
     return $res;
   }
 
+
+  function getTitle($text)
+  {
+    return preg_match("@<title" . self::TAGREST . "\s*(.*?)\s*</title\s*>@su", $text, $Matches) ? $Matches[1] : "";
+  }
+
+  function splitPrologAndText($text)
+  {
+    return preg_match("@</header\s*>\s*(.*?)\s*(<chapter.*?)</osisText\s*>@su", $text, $Matches) ?
+      [$Matches[1], $Matches[2]] : [];
+  }
+
+  function convertIntroductionP($text)
+  {
+    # p
+    $text = preg_replace("@<p\b" . self::TAGREST . "@su", "<p class='e'>", $text);
+    $text = preg_replace("@</p\s*>@su", "</p>", $text);
+    return $text;
+  }
+
+  function dropMilestones($text)
+  {
+    # drop tags: milestone
+    return preg_replace("@</?(milestone)" . self::TAGREST . "\s*@su", "", $text);
+  }
+
+  function convertOutlineDiv($text)
+  {
+    # change div.type=outline to div.class=outline
+    return preg_replace(
+        "@\s*<div[^>]*?type" . self::EQ . self::Q . "\s*outline\s*" . self::Q . self::TAGREST . "\s*@su"
+      , "\n<div class=\"outline\">\n"
+      , $text
+      );
+  }
+
+  function convertList($text)
+  {
+    # change list + head to <h.> + list
+    $text = preg_replace("@(<list" . self::TAGREST . ")\s*<head" . self::TAGREST . "\s*(.*?)\s*</head\s*>@us", "<h2>$2</h2>\n$1", $text);
+
+    # replace tags
+    $text = preg_replace("@<(/?)list\b" . self::TAGREST . "@su", "<$1ul>", $text);
+    $text = preg_replace("@<(/?)item\b" . self::TAGREST . "@su", "<$1li>", $text);
+
+
+    # reference
+    $text = preg_replace("@<reference\b" . self::TAGREST . "@su", "<span class='ref'>", $text);
+    $text = preg_replace("@</reference\s*>@su", "</span>", $text);
+
+    # drop remaining titles
+    $text = preg_replace("@</?(title)" . self::TAGREST . ".*?</\\1\s*>@su", "", $text);
+
+    # cleanup
+    $text = preg_replace("@(</li>)(</ul>)@su", "$1\n$2", $text);
+
+    return $text;
+  }
+
+  function insertTocs($text, $booksToc, $chaptersToc)
+  {
+    # toc + title.runningHead (after processing p), set target #bb for book links (cf. NeUe: below book toc)
+    return preg_replace(
+        "@<(title)\b[^>]*runningHead" . self::TAGREST . "(.*?)</\\1\s*>@su"
+      , $booksToc
+        . "<h1 id=\"bb\" class='u0'>$2</h1>\n"
+        . $chaptersToc
+      , $text
+      );
+  }
+
+  /**
+   * Format table of Bible books with hyperlinks into 2x: h2.bookLinks + p
+   *
+   * @param {Array} $BooknamesMap
+   * - keys: book file names, e.g. "Gn" or "GEN"
+   * - values: book names to show, e.g. "Matthew"
+   * @param {String} $bookMtKey the book file name of book Matthew (triggers new paragraph)
+   * @param {String} $otTitle title of the Old Testament hyperlinks
+   * @param {String} $ntTitle title of the New Testament hyperlinks
+   * @param {String} $rootID HTML id for the link target in the HTML files, id omitted if empty
+   */
+  function formatBooksToc($BooknamesMap, $bookMtKey, $otTitle, $ntTitle, $rootID)
+  {
+    $res = "<h2 class=\"bookLinks\">$otTitle</h2>\n<p>\n";
+    foreach ($BooknamesMap as $key => $bookName) {
+      if ($key == $bookMtKey) {
+        $res .= "</p>\n<h2 class=\"bookLinks\">$ntTitle</h2>\n<p>\n";
+      }
+      $res .= "<a href=\"$key.html" . ($rootID ? "#$rootID" : "") . "\">" . $bookName . "</a>\n";
+    }
+    $res .= "</p>\n";
+    return $res;
+  }
+
+
+  function convertChapterTags($text)
+  {
+    $divSectionStart = "<div\b[^>]*?\btype" . self::EQ . self::Q . "\s*section\s*" . self::Q . self::TAGREST;
+    $titleElement_1title        = "<title\b" . self::TAGREST . "(.*?)</title\b\s*>";
+
+    # swap chapter.sID <=> div.type=section
+    $text = preg_replace("@(" . self::CHAPTERSTART_1NUMBER . ")\s*($divSectionStart\s*$titleElement_1title)@su", "$3\n$1", $text);
+
+    # div.section to h4
+    $text = preg_replace("@$divSectionStart\s*$titleElement_1title@su", "<h4>$1</h4>", $text);
+
+    # change chapter.sID to p.kap, set chapter id #i
+    $text = preg_replace("@" . self::CHAPTERSTART_1NUMBER . "@su", "<p id=\"$1\" class='kap'><a href=\"#top\">$1</a></p>", $text);
+
+    # drop chapter.eID
+    $text = preg_replace("@<chapter\b[^>]*?\beID" . self::TAGREST . "@su", "", $text);
+
+    return $text;
+  }
+
+  function moveVerseStart($text)
+  {
+    $verseStart                 = "<verse\b[^>]*?\bsID\b" . self::TAGREST;
+    $containerStart             = "<(?:p|l)\b" . self::TAGREST;
+
+    # move verse.sID into following <p> or <l>
+    $text = preg_replace("@($verseStart)\s*($containerStart)@su", "$2$1", $text);
+
+    return $text;
+  }
+
+  function moveNote($text)
+  {
+    $noteContainerEnd           = "</(?:lg|p)\s*>";
+
+    # move note behind next </lg> or </p>
+    $text = preg_replace("@(" . self::NOTEELEMENT_1CONTENTS . ")(.*?)($noteContainerEnd)@su", "$3$4\n$1", $text);
+
+    return $text;
+  }
+
+
+  function convertNote($text)
+  {
+    $referenceElement_1contents = "<reference\b" . self::TAGREST . "(.*?)</reference\b\s*>";
+    $catchWordElement_1contents = "<catchWord\b" . self::TAGREST . "(.*?)</catchWord\b\s*>";
+
+    # change note to div
+    $text = preg_replace_callback("@" . self::NOTEELEMENT_1CONTENTS . "@su",
+      function($Matches) use ($referenceElement_1contents, $catchWordElement_1contents) {
+        $content = $Matches[1];
+        $content = preg_replace("@$referenceElement_1contents\s*(?:$catchWordElement_1contents)?(.*)@su"
+        , "<div class=\"fn\">$1 " . ("$2" ? "<em>$2</em>" : "") . "$3</div>"
+        , $content);
+        return $content;
+      }
+      , $text);
+    return $text;
+  }
+
+
+  function convertLg($text)
+  {
+    $lgStart = "<lg\b" . self::TAGREST;
+    $lStart  = "<l\b" . self::TAGREST;
+    $lEnd    = "</l\s*>";
+    $lgEnd   = "</lg\s*>";
+
+    # change lg + l to p with br
+    $text = preg_replace_callback("@$lgStart\s*(.*?)$lgEnd@su",
+      function($Matches) use ($lStart, $lEnd) {
+        $content = $Matches[1];
+        $ok = preg_match_all("@\s*$lStart\s*(.*?)$lEnd@su", $content, $ContentMatches,  PREG_PATTERN_ORDER);
+        return $ok === false ? "" : "\n<p class=\"poet\">" . implode("<br/>\n", $ContentMatches[1]) . "</p>";
+      }
+      , $text);
+
+    return $text;
+  }
+
+  function dropEndTags($text)
+  {
+    $verseEnd = "<verse\b[^>]*?\beID" . self::TAGREST;
+    $divEnd   = "</div\b" . self::TAGREST;
+
+    # drop verse.eID
+    $text = preg_replace("@$verseEnd@su", "", $text);
+    # drop /div
+    $text = preg_replace("@$divEnd@", "", $text);
+
+    return $text;
+  }
 
 
 }
