@@ -211,9 +211,36 @@ EOEXP;
 EOTEXT;
       $exp = <<<EOEXP
 <p/>
-<h4>S</h4>
+<h3>S</h3>
 <p id="1" class='chapter'><a href="#top">1</a></p>
 <verse osisID="Gen.1.1" sID="Gen.1.1"/><p>A.<verse eID="Gen.1.1"/>
+EOEXP;
+      $this->assertEquals($exp, $this->Replacer->convertChapterTags($text, "top"));
+    }
+    public function testConvertChapterTagsDivVerseTitle()
+    {
+      $text = <<<EOTEXT
+</p><div type="section"><verse eID="Exod.1.7"/>
+<title>Izip Ram ih Israel Tuarnak</title>
+EOTEXT;
+      $exp = <<<EOEXP
+</p><div type="section"><verse eID="Exod.1.7"/>
+<title>Izip Ram ih Israel Tuarnak</title>
+EOEXP;
+      $this->assertEquals($exp, $this->Replacer->convertChapterTags($text, "top"));
+    }
+
+    public function testConvertChapterSubsectionTags()
+    {
+      $text = <<<EOTEXT
+<chapter osisID="Exod.26" sID="Exod.26"/>
+<div type="section"><title>B</title><div type="subSection"><title level="2">BT</title>
+EOTEXT;
+      $exp = <<<EOEXP
+
+<h3>B</h3>
+<p id="26" class='chapter'><a href="#top">26</a></p>
+<h4>BT</h4>
 EOEXP;
       $this->assertEquals($exp, $this->Replacer->convertChapterTags($text, "top"));
     }
@@ -318,11 +345,11 @@ EOEXP;
     public function testMoveNoteBehindLG()
     {
       $text = <<<EOTEXT
-<l level="1">Na <note placement="foot"><reference type="annotateRef">3:17</reference> <catchWord>word:</catchWord> 16.</note>word</l>
+<lg><l level="1">Na <note placement="foot"><reference type="annotateRef">3:17</reference> <catchWord>word:</catchWord> 16.</note>word</l>
 <l level="1">L</l></lg>
 EOTEXT;
       $exp = <<<EOEXP
-<l level="1">Na word</l>
+<lg><l level="1">Na word</l>
 <l level="1">L</l></lg>
 <note placement="foot"><reference type="annotateRef">3:17</reference> <catchWord>word:</catchWord> 16.</note>
 EOEXP;

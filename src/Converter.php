@@ -138,11 +138,13 @@ class Converter
 
   private function getChapters($text)
   {
+    # drop end tags first, e.g. for section - verse end tag - title
+    $text = $this->Replacer->dropEndTags($text);
+
     $text = $this->Replacer->convertChapterTags($text, $this->Config["rootID"]);
     $text = $this->Replacer->moveVerseStart($text);
     $text = $this->Replacer->convertVerseStart($text, $this->Config["chapterVerseSep"]);
 
-    $text = $this->Replacer->dropEndTags($text);
 
     $text = $this->Replacer->moveNote($text);
     $text = $this->Replacer->convertNote($text);
