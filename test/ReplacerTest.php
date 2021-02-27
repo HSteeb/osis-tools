@@ -18,56 +18,6 @@ class ReplacerTest extends  \PHPUnit\Framework\TestCase
         $this->assertNotNull($this->Replacer);
     }
 
-    public function testGetVerseStart()
-    {
-      $this->assertEquals("abc", $this->Replacer->convertVerseStart("abc"));
-
-      $this->assertEquals(
-          "<span id=\"14v1\" class=\"vers\">1</span> "
-        , $this->Replacer->convertVerseStart('<verse osisID="Gen.14.10" sID="Gen.14.1"/>')
-        );
-      $this->assertEquals(
-          "<span id=\"14v10\" class=\"vers\">10</span> "
-        , $this->Replacer->convertVerseStart('<verse osisID="Gen.14.10" sID="Gen.14.10"/>')
-        );
-      $this->assertEquals(
-          "<span id=\"14v10\"/><span id=\"14v11\"/><span class=\"vers\">10–11</span> "
-        , $this->Replacer->convertVerseStart('<verse sID="Gen.14.10 Gen.14.11"/>')
-        );
-      $this->assertEquals(
-          "<span id=\"14v10\"/><span id=\"14v11\"/><span id=\"14v12\"/><span class=\"vers\">10–12</span> "
-        , $this->Replacer->convertVerseStart('<verse sID="Gen.14.10 Gen.14.11 Gen.14.12"/>')
-        );
-      $this->assertEquals(
-          "<span id=\"14v10\"/><span id=\"14v11\"/><span id=\"15v1\"/><span class=\"vers\">14,10–15,1</span> "
-         , $this->Replacer->convertVerseStart('<verse sID="Gen.14.10 Gen.14.11 Gen.15.1"/>')
-         );
-    }
-
-    public function testGetVerseStartExceptions1()
-    {
-       $this->expectExceptionMessage('Cannot handle sID');
-       $this->Replacer->convertVerseStart('<verse sID="xy"/>');
-    }
-
-    public function testGetVerseStartExceptions2()
-    {
-       $this->expectExceptionMessage('Cannot handle sID');
-       $this->Replacer->convertVerseStart('<verse sID="Gen.14.10 xy"/>');
-    }
-
-    public function testGetVerseStartExceptions3()
-    {
-       $this->expectExceptionMessage('Descending chapter numbers 14/13 in');
-       $this->Replacer->convertVerseStart('<verse sID="Gen.14.10 Gen.13.11"/>');
-    }
-
-    public function testGetVerseStartExceptions4()
-    {
-       $this->expectExceptionMessage('Missing sID value in');
-       $this->Replacer->convertVerseStart('<verse sID=""/>');
-    }
-
     public function testFormatBooksToc()
     {
       $Map = [
@@ -158,8 +108,8 @@ EOCH;
 <p subType="x-introduction">p2.</p>
 EOP;
       $exp = <<<EOEXP
-<p class='e'>p1.</p>
-<p class='e'>p2.</p>
+<p class='intro'>p1.</p>
+<p class='intro'>p2.</p>
 EOEXP;
       $this->assertEquals($exp, $this->Replacer->convertIntroductionP($text));
     }
@@ -180,9 +130,35 @@ EOLIST;
 <span class='ref'>Ref1</span></li>
 <li>Item2
 <span class='ref'>Ref2</span></li>
-</ul></div>
+</ul>
+</div>
 EOEXP;
       $this->assertEquals($exp, $this->Replacer->convertList($text));
+    }
+
+    public function testDropBookDiv()
+    {
+      $text = <<<EOTEXT
+<div type="book" osisID="Gen" canonical="true">
+EOTEXT;
+      $exp = "";
+      $this->assertEquals($exp, $this->Replacer->dropBookDiv($text));
+    }
+
+    public function testConvertMainTitle()
+    {
+      $text = <<<EOTEXT
+<div type="book" osisID="Gen" canonical="true">
+<title type="runningHead">S</title><milestone type="x-usfm-toc3" n="S"/>
+<milestone type="x-usfm-toc2" n="S"/>
+EOTEXT;
+      $exp = <<<EOEXP
+<div type="book" osisID="Gen" canonical="true">
+<h2 id="TOP" class="main">S</h2>
+<milestone type="x-usfm-toc3" n="S"/>
+<milestone type="x-usfm-toc2" n="S"/>
+EOEXP;
+      $this->assertEquals($exp, $this->Replacer->convertMainTitle($text, "TOP"));
     }
 
     public function testDropMilestones()
@@ -214,13 +190,13 @@ EOEXP;
     public function testInsertTocs()
     {
       $text = <<<EOTEXT
-<title type="runningHead">K</title><milestone type="x-usfm-toc3" n="Sem"/>
+<h2 class="main">K</h2><milestone type="x-usfm-toc3" n="S"/>
 EOTEXT;
       $exp = <<<EOEXP
 BOOKSTOC
-<h1 id="bb" class='u0'>K</h1>
+<h2 class="main">K</h2>
 CHAPTERSTOC
-<milestone type="x-usfm-toc3" n="Sem"/>
+<milestone type="x-usfm-toc3" n="S"/>
 EOEXP;
       $this->assertEquals($exp, $this->Replacer->insertTocs($text, "BOOKSTOC\n", "CHAPTERSTOC\n"));
     }
@@ -228,16 +204,18 @@ EOEXP;
     public function testConvertChapterTags()
     {
       $text = <<<EOTEXT
+<p/>
 <chapter osisID="Gen.1" sID="Gen.1"/>
 <div type="section"><title>S</title>
 <verse osisID="Gen.1.1" sID="Gen.1.1"/><p>A.<verse eID="Gen.1.1"/>
 EOTEXT;
       $exp = <<<EOEXP
+<p/>
 <h4>S</h4>
-<p id="1" class='kap'><a href="#top">1</a></p>
+<p id="1" class='chapter'><a href="#top">1</a></p>
 <verse osisID="Gen.1.1" sID="Gen.1.1"/><p>A.<verse eID="Gen.1.1"/>
 EOEXP;
-      $this->assertEquals($exp, $this->Replacer->convertChapterTags($text));
+      $this->assertEquals($exp, $this->Replacer->convertChapterTags($text, "top"));
     }
 
 
@@ -266,6 +244,64 @@ EOTEXT;
 EOEXP;
       $this->assertEquals($exp, $this->Replacer->moveVerseStart($text));
     }
+
+    public function testGetVerseStart()
+    {
+      $this->assertEquals("abc", $this->Replacer->convertVerseStart("abc"));
+
+      $this->assertEquals(
+          "<span id=\"14v1\" class=\"verse\">1</span> "
+        , $this->Replacer->convertVerseStart('<verse osisID="Gen.14.10" sID="Gen.14.1"/>')
+        );
+      $this->assertEquals(
+          "<span id=\"14v10\" class=\"verse\">10</span> "
+        , $this->Replacer->convertVerseStart('<verse osisID="Gen.14.10" sID="Gen.14.10"/>')
+        );
+      $this->assertEquals(
+          "<span id=\"14v10\"/><span id=\"14v11\"/><span class=\"verse\">10–11</span> "
+        , $this->Replacer->convertVerseStart('<verse sID="Gen.14.10 Gen.14.11"/>')
+        );
+      $this->assertEquals(
+          "<span id=\"14v10\"/><span id=\"14v11\"/><span id=\"14v12\"/><span class=\"verse\">10–12</span> "
+        , $this->Replacer->convertVerseStart('<verse sID="Gen.14.10 Gen.14.11 Gen.14.12"/>')
+        );
+      # default $chapterVerseSep
+      $this->assertEquals(
+          "<span id=\"14v10\"/><span id=\"14v11\"/><span id=\"15v1\"/><span class=\"verse\">14,10–15,1</span> "
+         , $this->Replacer->convertVerseStart('<verse sID="Gen.14.10 Gen.14.11 Gen.15.1"/>')
+         );
+      # $chapterVerseSep
+      $chapterVerseSep = ":";
+      $this->assertEquals(
+          "<span id=\"14v10\"/><span id=\"14v11\"/><span id=\"15v1\"/><span class=\"verse\">14:10–15:1</span> "
+         , $this->Replacer->convertVerseStart('<verse sID="Gen.14.10 Gen.14.11 Gen.15.1"/>', $chapterVerseSep)
+         );
+    }
+
+    public function testGetVerseStartExceptions1()
+    {
+       $this->expectExceptionMessage('Cannot handle sID');
+       $this->Replacer->convertVerseStart('<verse sID="xy"/>');
+    }
+
+    public function testGetVerseStartExceptions2()
+    {
+       $this->expectExceptionMessage('Cannot handle sID');
+       $this->Replacer->convertVerseStart('<verse sID="Gen.14.10 xy"/>');
+    }
+
+    public function testGetVerseStartExceptions3()
+    {
+       $this->expectExceptionMessage('Descending chapter numbers 14/13 in');
+       $this->Replacer->convertVerseStart('<verse sID="Gen.14.10 Gen.13.11"/>');
+    }
+
+    public function testGetVerseStartExceptions4()
+    {
+       $this->expectExceptionMessage('Missing sID value in');
+       $this->Replacer->convertVerseStart('<verse sID=""/>');
+    }
+
 
     public function testMoveNoteBehindP()
     {
@@ -324,7 +360,7 @@ EOEXP;
 EOTEXT;
       $exp = <<<EOEXP
 </p>
-<p class="poet">&lt;&lt;H<br/>
+<p class="cite">&lt;&lt;H<br/>
 Ṭ<br/>
 Cu</p>
 <p>

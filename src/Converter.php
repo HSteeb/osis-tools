@@ -5,20 +5,51 @@ use HSteeb\osis2html\Replacer;
 
 class Converter
 {
-  private static $SEP = ","; # chapter to verse number separator
-  private static $q;
-  private static $eq;
-  private static $chapterStart_1number;
-  private static $Replacer;
+  private const DEFAULTCONFIG = [
+    "chapterVerseSep" => ","
+  , "rootID"          => "top"
+  , "header"          => ""
+  , "footer"          => ""
+  , "bookNames"       => []
+  , "bookNameMt"      => "Mt"
+  , "otTitle"         => "Old Testament"
+  , "ntTitle"         => "New Testament"
+  , "dropChars"       => null
+  ];
 
-  static function run($infile, $outfile)
+  private $Replacer;
+  private $Config;
+
+  function __construct($Config = [])
+  {
+      $this->Config = array_merge(self::DEFAULTCONFIG, $Config);
+      $this->Replacer = new Replacer();
+  }
+
+  /**
+   * @param {String} $infile path to source file
+   * @param {String} $outfile path to result file
+   * @param {Array} $Config options:
+   * - chapterVerseSep: separator "," in Genesis 1,2
+   * - rootID: (optional) id of HTML element, the link target for navigating to the start of the file
+   * - header: HTML header including start of body, up to before the generated content.
+   *     * %title; will be replaced by the title from the file.
+   * - footer: HTML footer including end of body, after the generated content
+   * - bookNames: array of filename => Bible book name (for table of contents)
+   * - bookNameMt: filename of Matthew, for separating OT and NT in the table of contents
+   * - otTitle: heading of OT in table of contents
+   * - ntTitle: heading of NT in table of contents
+   * - dropChars: (optional) string containing characters to drop, e.g. "@"
+   */
+  function run($infile, $outfile)
   {
     try {
-      self::$Replacer = new Replacer();
       $osis = file_get_contents($infile);
       echo "Loaded $infile\n";
-      $html = self::convert($osis);
+
+      $html = $this->convert($osis);
       echo "Converted.\n";
+
       $bytesWritten = file_put_contents($outfile, $html);
       if ($bytesWritten === false) {
         throw new Exception("Failed to write " . $outfile);
@@ -31,49 +62,46 @@ class Converter
     }
   }
 
-  private static function convert($osis)
+  /**
+   * For unit test
+   * @param {String} $osis the Bible book text to convert
+   * @return {String} the resulting HTML text
+   */
+  function testConvert($osis)
   {
-    $osis = preg_replace("/@/", "", $osis); # BibleThianghlim contains `Himi @barli`, `type="psalm">@Hla Hruaitu`... (index entries?)
+    return $this->convert($osis);
+  }
+
+  private function convert($osis)
+  {
+    if ($this->Config["dropChars"]) {
+      $osis = preg_replace(".[" . $this->Config["dropChars"] . "].", "", $osis);
+    }
     return
-        self::getHeader($osis)
-      . self::getBody($osis)
-      . self::getFooter($osis)
+        $this->getHeader($osis)
+      . $this->getBody($osis)
+      . $this->getFooter($osis)
       ;
   }
 
-  private static function getHeader($osis)
+  private function getHeader($osis)
   {
-# 2021-02-17 HS TODO CSS PATH
-    $cssPath = "styles.css"; # importer for bootstrap + style.css
-#    $cssPath = "/css/style.css";
-#    $cssPath = "/steeb/bible2.net/impl/css/style.css";
-    $title = self::$Replacer->getTitle($osis);
-    return <<<EOHEADER
-<html>
-<head>
- <title>$title</title>
- <link rel="stylesheet" type="text/css" href="$cssPath">
- <meta charset="utf-8">
-</head>
-<body class="bible">
-<div id="content" class="container">
-<div class="row">
-<div class="col-md-12">
-EOHEADER;
+    $title = $this->Replacer->getTitle($osis);
+    return preg_replace("/%title;/", $title, $this->Config["header"]);
   }
 
-  private static function getBody($osis)
+  private function getBody($osis)
   {
     $html = "";
-    list ($prolog, $text) = self::$Replacer->splitPrologAndText($osis);
+    list ($prolog, $text) = $this->Replacer->splitPrologAndText($osis);
     if ($prolog && $text) {
       $html =
-        self::getProlog($prolog, $text)
-      . self::getChapters($text)
+        $this->getProlog($prolog, $text)
+      . $this->getChapters($text)
         ;
     }
     else {
-      throw new Exception("getBody: no match.");
+      throw new \Exception("Failed to split book prolog and chapters text.");
     }
     return $html;
   }
@@ -81,121 +109,52 @@ EOHEADER;
   /**
    * @param {String} $prolog - text from behind </header> up to before first <chapter>
    */
-  private static function getProlog($prolog, $text)
+  private function getProlog($prolog, $text)
   {
-    $prolog = self::$Replacer->convertIntroductionP($prolog);
-    $prolog = self::$Replacer->convertList($prolog);
-    $prolog = self::$Replacer->dropMilestones($prolog);
-    $prolog = self::$Replacer->convertOutlineDiv($prolog);
+    $Cfg = $this->Config;
+
+    $prolog = $this->Replacer->convertIntroductionP($prolog);
+    $prolog = $this->Replacer->dropBookDiv($prolog);
+    $prolog = $this->Replacer->convertMainTitle($prolog, $Cfg["rootID"]);
+    $prolog = $this->Replacer->convertList($prolog);
+    $prolog = $this->Replacer->dropMilestones($prolog);
+    $prolog = $this->Replacer->convertOutlineDiv($prolog);
 
     # compute toc
-    $booksToc    = self::$Replacer->formatBooksToc(self::enBookNames(), "Mt", "Old Testament", "New Testament", "bb");
-    $ChapterNumbers = self::$Replacer->getChapterNumbers($text);
-    $chaptersToc = self::$Replacer->formatChapterNumbersToc($ChapterNumbers);
-    $prolog = self::$Replacer->insertTocs($prolog, $booksToc, $chaptersToc);
+    if ($Cfg["bookNames"]) {
+      #echo "Creating books TOC\n";
+      $booksToc = $this->Replacer->formatBooksToc($Cfg["bookNames"], $Cfg["bookNameMt"], $Cfg["otTitle"], $Cfg["ntTitle"], $Cfg["rootID"]);
+    }
+    else {
+      $booksToc = "";
+    }
+    $ChapterNumbers = $this->Replacer->getChapterNumbers($text);
+    $chaptersToc    = $this->Replacer->formatChapterNumbersToc($ChapterNumbers);
+    $prolog = $this->Replacer->insertTocs($prolog, $booksToc, $chaptersToc);
+
 
     return $prolog;
   }
 
-  private static function getChapters($text)
+  private function getChapters($text)
   {
+    $text = $this->Replacer->convertChapterTags($text, $this->Config["rootID"]);
+    $text = $this->Replacer->moveVerseStart($text);
+    $text = $this->Replacer->convertVerseStart($text, $this->Config["chapterVerseSep"]);
 
-    $text = self::$Replacer->convertChapterTags($text);
-    $text = self::$Replacer->moveVerseStart($text);
+    $text = $this->Replacer->dropEndTags($text);
 
-    $text = self::$Replacer->convertVerseStart($text);
-
-    $text = self::$Replacer->dropEndTags($text);
-
-    $text = self::$Replacer->moveNote($text);
-    $text = self::$Replacer->convertNote($text);
-    $text = self::$Replacer->convertLg($text);
+    $text = $this->Replacer->moveNote($text);
+    $text = $this->Replacer->convertNote($text);
+    $text = $this->Replacer->convertLg($text);
 
     return $text;
   }
 
-  private static function getFooter($osis)
+  private function getFooter($osis)
   {
-    return <<<EOFOOTER
-</div>
-</div>
-</div>
-</body>
-</html>
-
-EOFOOTER;
+    return $this->Config["footer"];
   }
 
-  private static function enBookNames()
-  {
-    return [
-        "Gn" => "Genesis"
-      , "Ex" => "Exodus"
-      , "Lv" => "Leviticus"
-      , "Nu" => "Numbers"
-      , "Dt" => "Deuteronomy"
-      , "Jos" => "Joshua"
-      , "Jdc" => "Judges"
-      , "Rth" => "Ruth"
-      , "1Sm" => "1 Samuel"
-      , "2Sm" => "2 Samuel"
-      , "1Rg" => "1 Kings"
-      , "2Rg" => "2 Kings"
-      , "1Chr" => "1 Chronicles"
-      , "2Chr" => "2 Chronicles"
-      , "Esr" => "Ezra"
-      , "Neh" => "Nehemiah"
-      , "Esth" => "Esther"
-      , "Job" => "Job"
-      , "Ps" => "Psalm"
-      , "Prv" => "Proverbs"
-      , "Eccl" => "Ecclesiastes"
-      , "Ct" => "Song of Solomon"
-      , "Is" => "Isaiah"
-      , "Jr" => "Jeremiah"
-      , "Thr" => "Lamentations"
-      , "Ez" => "Ezekiel"
-      , "Dn" => "Daniel"
-      , "Hos" => "Hosea"
-      , "Joel" => "Joel"
-      , "Am" => "Amos"
-      , "Ob" => "Obadiah"
-      , "Jon" => "Jonah"
-      , "Mch" => "Micah"
-      , "Nah" => "Nahum"
-      , "Hab" => "Habakkuk"
-      , "Zph" => "Zephaniah"
-      , "Hgg" => "Haggai"
-      , "Zch" => "Zechariah"
-      , "Ml" => "Malachi"
-      , "Mt" => "Matthew"
-      , "Mc" => "Mark"
-      , "L" => "Luke"
-      , "J" => "John"
-      , "Act" => "Acts"
-      , "R" => "Romans"
-      , "1K" => "1 Corinthians"
-      , "2K" => "2 Corinthians"
-      , "G" => "Galatians"
-      , "E" => "Ephesians"
-      , "Ph" => "Philippians"
-      , "Kol" => "Colossians"
-      , "1Th" => "1 Thessalonians"
-      , "2Th" => "2 Thessalonians"
-      , "1T" => "1 Timothy"
-      , "2T" => "2 Timothy"
-      , "Tt" => "Titus"
-      , "Phm" => "Philemon"
-      , "H" => "Hebrews"
-      , "Jc" => "James"
-      , "1P" => "1 Peter"
-      , "2P" => "2 Peter"
-      , "1J" => "1 John"
-      , "2J" => "2 John"
-      , "3J" => "3 John"
-      , "Jd" => "Jude"
-      , "Ap" => " "
-    ];
-  }
 }
 ?>
