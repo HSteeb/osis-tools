@@ -217,6 +217,7 @@ EOTEXT;
 EOEXP;
       $this->assertEquals($exp, $this->Replacer->convertChapterTags($text, "top"));
     }
+
     public function testConvertChapterTagsDivVerseTitle()
     {
       $text = <<<EOTEXT
@@ -230,7 +231,27 @@ EOEXP;
       $this->assertEquals($exp, $this->Replacer->convertChapterTags($text, "top"));
     }
 
-    public function testConvertChapterSubsectionTags()
+    public function testConvertChapterMajorSectionTags()
+    {
+      $text = <<<EOTEXT
+<chapter eID="Ps.41"/>
+<chapter osisID="Ps.42" sID="Ps.42"/>
+</div></div>
+<div type="majorSection"><title>Bu 2-nak</title><div type="section"><title>Pathian Ngainak</title><title canonical="true" type="psalm">@Hla Hruaitu Hrang. Korah Fapapawlih @Maskil.</title>
+<verse osisID="Ps.42.1" sID="Ps.42.1"/>
+EOTEXT;
+      $exp = <<<EOEXP
+
+<p id="42" class='chapter'><a href="#top">42</a></p>
+</div></div>
+<h2>Bu 2-nak</h2>
+<h3>Pathian Ngainak</h3>
+<h4 class="psalm">@Hla Hruaitu Hrang. Korah Fapapawlih @Maskil.</h4><verse osisID="Ps.42.1" sID="Ps.42.1"/>
+EOEXP;
+      $this->assertEquals($exp, $this->Replacer->convertChapterTags($text, "top"));
+    }
+
+    public function testConvertChapterSubSectionTags()
     {
       $text = <<<EOTEXT
 <chapter osisID="Exod.26" sID="Exod.26"/>
@@ -271,6 +292,22 @@ EOTEXT;
 EOEXP;
       $this->assertEquals($exp, $this->Replacer->moveVerseStart($text));
     }
+
+    public function testMoveVerseStartIntoLgL()
+    {
+      $text = <<<EOTEXT
+<title canonical="true" type="psalm">A.</title>
+<verse osisID="Ps.3.1" sID="Ps.3.1"/><lg>
+<l level="1">M!</l>
+EOTEXT;
+      $exp = <<<EOEXP
+<title canonical="true" type="psalm">A.</title>
+<lg>
+<l level="1"><verse osisID="Ps.3.1" sID="Ps.3.1"/>M!</l>
+EOEXP;
+      $this->assertEquals($exp, $this->Replacer->moveVerseStart($text));
+    }
+
 
     public function testGetVerseStart()
     {
@@ -338,6 +375,7 @@ EOTEXT;
       $exp = <<<EOEXP
 <p>Na word</p>
 <note placement="foot"><reference type="annotateRef">3:17</reference> <catchWord>word:</catchWord> 16.</note>
+
 EOEXP;
       $this->assertEquals($exp, $this->Replacer->moveNote($text));
     }
@@ -352,6 +390,7 @@ EOTEXT;
 <lg><l level="1">Na word</l>
 <l level="1">L</l></lg>
 <note placement="foot"><reference type="annotateRef">3:17</reference> <catchWord>word:</catchWord> 16.</note>
+
 EOEXP;
       $this->assertEquals($exp, $this->Replacer->moveNote($text));
     }

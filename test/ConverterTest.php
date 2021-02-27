@@ -126,6 +126,7 @@ EOTEXT
 <span id="12v11" class="verse">11</span> C.</p>
 <div class="fn">12:3 <em>t no:</em> H.</div>
 <div class="fn">12:6 <em>k:</em> H.</div>
+
 EOEXP;
       $this->assertEquals($exp, $this->Converter->testConvert($text));
     }

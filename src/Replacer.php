@@ -163,19 +163,26 @@ class Replacer
 
   function convertChapterTags($text, $rootID)
   {
-    $divAnySectionStart = "<div\b[^>]*?\btype" . self::EQ . self::Q . "\s*s(?:subS)?ection\s*" . self::Q . self::TAGREST;
-    $divSectionStart    = "<div\b[^>]*?\btype" . self::EQ . self::Q . "\s*section\s*"         . self::Q . self::TAGREST;
-    $divSubsectionStart = "<div\b[^>]*?\btype" . self::EQ . self::Q . "\s*subSection\s*"      . self::Q . self::TAGREST;
-    $titleElement_1title = "<title\b" . self::TAGREST . "(.*?)</title\b\s*>";
+    $divAnySectionStart   = "<div\b[^>]*?\btype" . self::EQ . self::Q . "\s*(?:majorSection|section|subSection)\s*" . self::Q . self::TAGREST;
+    $divMajorSectionStart = "<div\b[^>]*?\btype" . self::EQ . self::Q . "\s*majorSection\s*" . self::Q . self::TAGREST;
+    $divSectionStart      = "<div\b[^>]*?\btype" . self::EQ . self::Q . "\s*section\s*"      . self::Q . self::TAGREST;
+    $divSubSectionStart   = "<div\b[^>]*?\btype" . self::EQ . self::Q . "\s*subSection\s*"   . self::Q . self::TAGREST;
+    $titleElement_1title  = "<title\b" . self::TAGREST . "(.*?)</title\b\s*>";
+    $titleTypePsalm_1title= "<title\b[^>]*?\btype" . self::EQ . self::Q . "\s*psalm\s*" . self::Q . self::TAGREST . "(.*?)</title\b\s*>";
 
     # swap chapter.sID <=> div.type=section
     # this places the chapter behind the first section title, before an optional second one
     $text = preg_replace("@(" . self::CHAPTERSTART_1NUMBER . ")\s*($divAnySectionStart\s*$titleElement_1title)@su", "$3\n$1", $text);
 
+    # div.majorSection to h2
+    $text = preg_replace("@\s*$divMajorSectionStart\s*$titleElement_1title@su", "\n<h2>$1</h2>", $text);
     # div.section to h3
     $text = preg_replace("@\s*$divSectionStart\s*$titleElement_1title@su", "\n<h3>$1</h3>", $text);
     # div.subsection to h4
-    $text = preg_replace("@\s*$divSubsectionStart\s*$titleElement_1title@su", "\n<h4>$1</h4>", $text);
+    $text = preg_replace("@\s*$divSubSectionStart\s*$titleElement_1title@su", "\n<h4>$1</h4>", $text);
+
+    # div.type=psalm to h4.psalm
+    $text = preg_replace("@\s*$titleTypePsalm_1title\s*@su", "\n<h4 class=\"psalm\">$1</h4>", $text);
 
     # change chapter.sID to p.chapter, set chapter id #i
     $text = preg_replace("@" . self::CHAPTERSTART_1NUMBER . "@su", "<p id=\"$1\" class='chapter'><a href=\"#$rootID\">$1</a></p>", $text);
@@ -189,7 +196,7 @@ class Replacer
   function moveVerseStart($text)
   {
     $verseStart                 = "<verse\b[^>]*?\bsID\b" . self::TAGREST;
-    $containerStart             = "<(?:p|l)\b" . self::TAGREST;
+    $containerStart             = "<(?:p|lg\b[^>]*?>\s*<l|l)\b" . self::TAGREST;
 
     # move verse.sID into following <p> or <l>
     $text = preg_replace("@($verseStart)\s*($containerStart)@su", "$2$1", $text);
