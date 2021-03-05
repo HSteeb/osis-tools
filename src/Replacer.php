@@ -206,7 +206,7 @@ class Replacer
     $text = preg_replace("@\s*$titleTypePsalm_1title\s*@su", "\n<h4 class=\"psalm\">$1</h4>", $text);
 
     # change chapter.sID to p.chapter, set chapter id #i
-    $text = preg_replace("@" . self::CHAPTERSTART_1NUMBER . "@su", "<p id=\"$1\" class='chapter'><a href=\"#$rootID\">$1</a></p>", $text);
+    $text = preg_replace("@\s*" . self::CHAPTERSTART_1NUMBER . "@su", "\n<p id=\"$1\" class='chapter'><a href=\"#$rootID\">$1</a></p>", $text);
 
     # drop chapter.eID
     $text = preg_replace("@<chapter\b[^>]*?\beID" . self::TAGREST . "@su", "", $text);

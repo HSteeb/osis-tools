@@ -44,7 +44,8 @@ EOEPILOG;
 <h2 id="top" class="main">S</h2>
 <p class="chapterLinks">
 <a href="#1">1</a></p>
-</div><p id="1" class='chapter'><a href="#top">1</a></p>
+</div>
+<p id="1" class='chapter'><a href="#top">1</a></p>
 
 EOEXP;
       $this->assertEquals($exp, $this->Converter->testConvert(self::SRC));
@@ -56,7 +57,8 @@ EOEXP;
 <h2 id="TOP" class="main">S</h2>
 <p class="chapterLinks">
 <a href="#1">1</a></p>
-</div><p id="1" class='chapter'><a href="#TOP">1</a></p>
+</div>
+<p id="1" class='chapter'><a href="#TOP">1</a></p>
 
 EOEXP;
       $Config = [ "rootID" => "TOP" ]; # test just one config property
@@ -83,7 +85,8 @@ EOTEXT
 <h2 id="top" class="main">S</h2>
 <p class="chapterLinks">
 <a href="#1">1</a></p>
-</div><p id="1" class='chapter'><a href="#top">1</a></p>
+</div>
+<p id="1" class='chapter'><a href="#top">1</a></p>
 <h3>Izip Ram ih Israel Tuarnak</h3>
 
 EOEXP;
@@ -111,7 +114,8 @@ EOTEXT
 <h2 id="top" class="main">S</h2>
 <p class="chapterLinks">
 <a href="#1">1</a></p>
-</div><p id="1" class='chapter'><a href="#top">1</a></p>
+</div>
+<p id="1" class='chapter'><a href="#top">1</a></p>
 <p><span id="12v1" class="verse">1</span> I,
 <span id="12v2" class="verse">2</span> &lt;&lt;T.
 <span id="12v3" class="verse">3</span> I t.

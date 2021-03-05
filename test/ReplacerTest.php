@@ -312,6 +312,7 @@ EOEXP;
 <div type="section"><title>B</title><div type="subSection"><title level="2">BT</title>
 EOTEXT;
       $exp = <<<EOEXP
+
 <p id="26" class='chapter'><a href="#top">26</a></p>
 <h3>B</h3>
 <h4>BT</h4>
