@@ -120,16 +120,70 @@ EOEXP;
 <div type="outline" subType="x-introduction"><list><head>Head</head>
 <item type="x-indent-1" subType="x-introduction">Item1
 <reference>Ref1</reference></item>
-<item type="x-indent-1" subType="x-introduction">Item2
-<reference>Ref2</reference></item></list></div>
+<item type="x-indent-1" subType="x-introduction">Item2</item>
+<item type="x-indent-1" subType="x-introduction">Item3
+<reference>Ref3</reference></item></list></div>
 EOLIST;
       $exp = <<<EOEXP
 <div type="outline" subType="x-introduction"><h2>Head</h2>
 <ul>
 <li>Item1
 <span class='ref'>Ref1</span></li>
-<li>Item2
-<span class='ref'>Ref2</span></li>
+<li>Item2</li>
+<li>Item3
+<span class='ref'>Ref3</span></li>
+</ul>
+</div>
+EOEXP;
+      $this->assertEquals($exp, $this->Replacer->convertList($text));
+    }
+
+    public function testConvertNestedList()
+    {
+      $text = <<<EOLIST
+<div type="outline" subType="x-introduction"><list><head>Head</head>
+<item type="x-indent-1" subType="x-introduction">Item1
+<reference>Ref1</reference></item>
+<item type="x-indent-2" subType="x-introduction">Item1.2
+<reference>Ref1.2</reference></item>
+<item type="x-indent-3" subType="x-introduction">Item1.2.3
+<reference>Ref1.2.3</reference></item>
+<item type="x-indent-4" subType="x-introduction">Item1.2.3.4
+<reference>Ref1.2.3.4</reference></item>
+<item type="x-indent-1" subType="x-introduction">Item3
+<reference>Ref3</reference></item>
+<item type="x-indent-2" subType="x-introduction">Item3.2
+</item>
+<item type="x-indent-1" subType="x-introduction">Item4
+</item></list></div>
+EOLIST;
+      $exp = <<<EOEXP
+<div type="outline" subType="x-introduction"><h2>Head</h2>
+<ul>
+<li>Item1
+<span class='ref'>Ref1</span>
+<ul>
+<li>Item1.2
+<span class='ref'>Ref1.2</span>
+<ul>
+<li>Item1.2.3
+<span class='ref'>Ref1.2.3</span>
+<ul>
+<li>Item1.2.3.4
+<span class='ref'>Ref1.2.3.4</span></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Item3
+<span class='ref'>Ref3</span>
+<ul>
+<li>Item3.2</li>
+</ul>
+</li>
+<li>Item4</li>
 </ul>
 </div>
 EOEXP;

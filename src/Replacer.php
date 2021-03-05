@@ -103,10 +103,21 @@ class Replacer
     # change list + head to <h.> + list
     $text = preg_replace("@(<list" . self::TAGREST . ")\s*<head" . self::TAGREST . "\s*(.*?)\s*</head\s*>@us", "<h2>$2</h2>\n$1", $text);
 
+    # Wrap item.x-indent=[234] sequences into inner ul/li lists
+    $eItemBefore_1 = "\s*(</item\s*>)\s*";
+    $sItem = "<item\b[^>]*";
+    $eItem = ".*?</item\s*>\s*";
+    # - item.x-indent=[234]
+    $text = preg_replace("@" . $eItemBefore_1. "((?:" . $sItem . "x-indent-[234]" . self::TAGREST . $eItem . ")+)@su", "\n<ul>$2</ul>\n$1\n", $text);
+    # - item.x-indent=[34]
+    $text = preg_replace("@" . $eItemBefore_1. "((?:" . $sItem . "x-indent-[34]"  . self::TAGREST . $eItem . ")+)@su", "\n<ul>$2</ul>\n$1\n", $text);
+    # - item.x-indent=4
+    $text = preg_replace("@" . $eItemBefore_1. "((?:" . $sItem . "x-indent-4"     . self::TAGREST . $eItem . ")+)@su", "\n<ul>\n$2</ul>\n$1\n", $text);
+
     # replace tags
     $text = preg_replace("@\s*<(/?)list\b" . self::TAGREST . "\s*@su", "\n<$1ul>\n", $text);
-    $text = preg_replace("@\s*<item\b"  . self::TAGREST . "\s*@su", "\n<$1li>", $text);
-    $text = preg_replace("@\s*</item\b" . self::TAGREST . "\s*@su", "</li>\n", $text);
+    $text = preg_replace("@\s*<item\b"  . self::TAGREST . "\s*@su", "\n<li>", $text);
+    $text = preg_replace("@\s*</item\b" . self::TAGREST . "\s*@su", "</li>\n", $text); # drops "\n" in "</ul>\n</li>" (1)
 
 
     # reference
@@ -117,6 +128,7 @@ class Replacer
     $text = preg_replace("@</?(title)" . self::TAGREST . ".*?</\\1\s*>@su", "", $text);
 
     # cleanup
+    $text = preg_replace("@(</ul>)(</li>)@su", "$1\n$2", $text); # repairs (1) above
     $text = preg_replace("@(</li>)(</ul>)@su", "$1\n$2", $text);
 
     return $text;
