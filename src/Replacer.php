@@ -351,14 +351,14 @@ class Replacer
             , $headings
             );
           # replace container content by content without notes, plus all notes added behind it
-          return $headings . "\n" . $this->formatNotes($Notes);
+          return $headings . "\n" . $this->formatNotes($Notes, /*includeRef*/ false);
         }
       , $text
       );
     return $text;
   }
 
-  function formatNotes($Notes)
+  function formatNotes($Notes, $includeRef = true)
   {
     if (!$Notes) {
       return "";
@@ -366,22 +366,32 @@ class Replacer
     $Result = [];
     foreach ($Notes as $Note) {
       list($text, $indicator) = $Note;
-      $Result[] = $this->convert1Note($text, $indicator);
+      $Result[] = $this->convert1Note($text, $indicator, $includeRef);
     }
     return implode("\n", $Result) . "\n";
   }
 
-  function convert1Note($text, $indicator)
+  /**
+   * @param {String} $text the OSIS <note> element
+   * @param {String} $indicator the character denoting the running footnote in the text
+   * @param {Bool} $includeRef whether the footnote shall include the OSIS <reference> text (default true)
+   * - use-case: omitted in a footnote below heading lines
+   */
+  function convert1Note($text, $indicator, $includeRef = true)
   {
     $referenceElement_1contents = "<reference\b" . self::TAGREST . "(.*?)</reference\b\s*>";
     $catchWordElement_1contents = "<catchWord\b" . self::TAGREST . "(.*?)</catchWord\b\s*>";
 
     # change note to div
     $text = preg_replace_callback("@" . self::NOTEELEMENT_1CONTENTS . "@su",
-      function($Matches) use ($referenceElement_1contents, $catchWordElement_1contents, $indicator) {
+      function($Matches) use ($referenceElement_1contents, $catchWordElement_1contents, $indicator, $includeRef) {
         $content = $Matches[1];
         $content = preg_replace("@$referenceElement_1contents\s*(?:$catchWordElement_1contents)?(.*)@su"
-        , "<p class=\"fn\"><span class=\"ref\">$1</span><sup class=\"ind\">$indicator</sup>" . ("$2" ? " <span class=\"word\">$2</span>" : "") . "<span class=\"text\">$3</span></p>"
+        , "<p class=\"fn\">"
+          . ($includeRef ? "<span class=\"ref\">$1</span>" : "")
+          . "<sup class=\"ind\">$indicator</sup>"
+          . ("$2" ? " <span class=\"word\">$2</span>" : "")
+          . "<span class=\"text\">$3</span></p>"
         , $content);
         return $content;
       }

@@ -457,7 +457,7 @@ EOEXP;
 EOTEXT;
       $exp = <<<EOEXP
 <h3>D</h3><h3 class="psalm">@H. @N<sup class="fnref">a</sup> E.</h3>
-<p class="fn"><span class="ref">6:0</span><sup class="ind">a</sup> <span class="word">Sh:</span><span class="text"> H.</span></p>
+<p class="fn"><sup class="ind">a</sup> <span class="word">Sh:</span><span class="text"> H.</span></p>
 <verse osisID="Ps.6.1" sID="Ps.6.1"/>
 EOEXP;
       $this->assertEquals($exp, $this->Replacer->moveNoteBehindH($text));
