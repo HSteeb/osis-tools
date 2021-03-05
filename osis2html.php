@@ -38,6 +38,14 @@ if ($argc == 4) {
 }
 
 $Converter = new Converter($Config);
-$Converter->run($infile, $outfile);
+$prepareFunction = function($osis)
+{
+  # drop "@", replace angle bracket quotes by typographic ones
+  $From = ["@", "&lt;&lt;", "&gt;&gt;", "&lt;", "&gt;"];
+  $To   = ["", "\u{00ab}", "\u{00bb}", "\u{2039}", "\u{203A}"];
+  $osis = str_replace($From, $To, $osis);
+  return $osis;
+};
+$Converter->run($infile, $outfile, $prepareFunction);
 
 ?>

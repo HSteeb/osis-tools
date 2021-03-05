@@ -14,21 +14,12 @@ class Converter
   , "bookNameMt"      => "Mt"
   , "otTitle"         => "Old Testament"
   , "ntTitle"         => "New Testament"
-  , "dropChars"       => null
   ];
 
   private $Replacer;
   private $Config;
 
-  function __construct($Config = [])
-  {
-      $this->Config = array_merge(self::DEFAULTCONFIG, $Config);
-      $this->Replacer = new Replacer();
-  }
-
   /**
-   * @param {String} $infile path to source file
-   * @param {String} $outfile path to result file
    * @param {Array} $Config options:
    * - chapterVerseSep: separator "," in Genesis 1,2
    * - rootID: (optional) id of HTML element, the link target for navigating to the start of the file
@@ -39,14 +30,28 @@ class Converter
    * - bookNameMt: filename of Matthew, for separating OT and NT in the table of contents
    * - otTitle: heading of OT in table of contents
    * - ntTitle: heading of NT in table of contents
-   * - dropChars: (optional) string containing characters to drop, e.g. "@"
    */
-  function run($infile, $outfile)
+  function __construct($Config = [])
+  {
+      $this->Config = array_merge(self::DEFAULTCONFIG, $Config);
+      $this->Replacer = new Replacer();
+  }
+
+  /**
+   * @param {String} $infile path to source file
+   * @param {String} $outfile path to result file
+   * @param {Function} $prepareFunction if given, is called with the OSIS string as single parameter, must return the string.
+   * - use-case: e.g. specific string replacements.
+   */
+  function run($infile, $outfile, $prepareFunction = null)
   {
     try {
       $osis = file_get_contents($infile);
       echo "Loaded $infile\n";
 
+      if ($prepareFunction) {
+        $osis = $prepareFunction($osis);
+      }
       $html = $this->convert($osis);
       echo "Converted.\n";
 
@@ -74,9 +79,6 @@ class Converter
 
   private function convert($osis)
   {
-    if ($this->Config["dropChars"]) {
-      $osis = preg_replace(".[" . $this->Config["dropChars"] . "].", "", $osis);
-    }
     return
         $this->getHeader($osis)
       . $this->getBody($osis)
