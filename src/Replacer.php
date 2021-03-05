@@ -175,13 +175,13 @@ class Replacer
 
   function convertChapterTags($text, $rootID)
   {
-    $divAnySectionStart   = "<div\b[^>]*?\btype" . self::EQ . self::Q . "\s*(?:majorSection|section|subSection)\s*" . self::Q . self::TAGREST;
-    $divLowerSectionStart = "<div\b[^>]*?\btype" . self::EQ . self::Q . "\s*(?:section|subSection)\s*" . self::Q . self::TAGREST;
     $divMajorSectionStart = "<div\b[^>]*?\btype" . self::EQ . self::Q . "\s*majorSection\s*" . self::Q . self::TAGREST;
+    $divLowerSectionStart = "<div\b[^>]*?\btype" . self::EQ . self::Q . "\s*(?:section|subSection)\s*" . self::Q . self::TAGREST;
     $divSectionStart      = "<div\b[^>]*?\btype" . self::EQ . self::Q . "\s*section\s*"      . self::Q . self::TAGREST;
     $divSubSectionStart   = "<div\b[^>]*?\btype" . self::EQ . self::Q . "\s*subSection\s*"   . self::Q . self::TAGREST;
     $titleElement_1title  = "<title\b" . self::TAGREST . "(.*?)</title\b\s*>";
     $titleTypePsalm_1title= "<title\b[^>]*?\btype" . self::EQ . self::Q . "\s*psalm\s*" . self::Q . self::TAGREST . "(.*?)</title\b\s*>";
+    $eDivs                = "(?:\s*</div\s*>)*";
 
     # Assume this hierarchy:
     # - div.type=majorSection Psalm books, multiple chapters
@@ -189,11 +189,8 @@ class Replacer
     # - div.type=section within chapter
     # - div.type=subSection
 
-    # put chapter.sID behind div.type=majorSection
-    $text = preg_replace("@(" . self::CHAPTERSTART_1NUMBER . ")\s*($divMajorSectionStart\s*$titleElement_1title)@su", "$3\n$1", $text);
-
-    # put chapter.sID before div.type=section|subSection
-#    $text = preg_replace("@(" . self::CHAPTERSTART_1NUMBER . ")\s*($divLowerSectionStart\s*$titleElement_1title)@su", "$3\n$1", $text);
+    # put chapter.sID behind div.type=majorSection, move 0..n </div> to front
+    $text = preg_replace("@\s*(" . self::CHAPTERSTART_1NUMBER . ")($eDivs)\s*($divMajorSectionStart\s*$titleElement_1title)@su", "$3\n$4\n$1", $text);
 
     # div.majorSection to h2
     $text = preg_replace("@\s*$divMajorSectionStart\s*$titleElement_1title@su", "\n<h2>$1</h2>", $text);

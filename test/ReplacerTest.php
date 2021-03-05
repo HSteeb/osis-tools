@@ -296,9 +296,9 @@ EOEXP;
 EOTEXT;
       $exp = <<<EOEXP
 
-<p id="42" class='chapter'><a href="#top">42</a></p>
 </div></div>
 <h2>Bu 2-nak</h2>
+<p id="42" class='chapter'><a href="#top">42</a></p>
 <h3>Pathian Ngainak</h3>
 <h4 class="psalm">@Hla Hruaitu Hrang. Korah Fapapawlih @Maskil.</h4><verse osisID="Ps.42.1" sID="Ps.42.1"/>
 EOEXP;
