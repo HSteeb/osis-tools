@@ -118,17 +118,17 @@ EOTEXT
 <p id="1" class='chapter'><a href="#top">1</a></p>
 <p><span id="12v1" class="verse">1</span> I,
 <span id="12v2" class="verse">2</span> &lt;&lt;T.
-<span id="12v3" class="verse">3</span> I t.
+<span id="12v3" class="verse">3</span> I <sup class="fnref">a</sup>t.
 <span id="12v4" class="verse">4</span> C.
 <span id="12v5" class="verse">5</span> N.
-<span id="12v6" class="verse">6</span> C k.
+<span id="12v6" class="verse">6</span> C <sup class="fnref">b</sup>k.
 <span id="12v7" class="verse">7</span> C.
 <span id="12v8" class="verse">8</span> C.
 <span id="12v9" class="verse">9</span> C.
 <span id="12v10" class="verse">10</span> C.
 <span id="12v11" class="verse">11</span> C.</p>
-<div class="fn">12:3 <em>t no:</em> H.</div>
-<div class="fn">12:6 <em>k:</em> H.</div>
+<p class="fn"><span class="ref">12:3</span><sup class="ind">a</sup> <span class="word">t no:</span><span class="text"> H.</span></p>
+<p class="fn"><span class="ref">12:6</span><sup class="ind">b</sup> <span class="word">k:</span><span class="text"> H.</span></p>
 
 EOEXP;
       $this->assertEquals($exp, $this->Converter->testConvert($text));

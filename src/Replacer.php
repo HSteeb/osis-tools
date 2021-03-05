@@ -311,18 +311,19 @@ class Replacer
           # process one <p> or <lg> as "container"
           list($stag, $content, $etag) = [$Matches[1], $Matches[3], $Matches[4]];
           $Notes = [];
+          $currentIndicator = "a";
           $content = preg_replace_callback(
               "@" . self::NOTEELEMENT_1CONTENTS . "@su"
-            , function($NoteMatches) use (&$Notes)
+            , function($NoteMatches) use (&$Notes, &$currentIndicator)
               {
-                # process one <note>
-                $Notes[] = $NoteMatches[0]; # remember it
-                return "";                  # replace by empty string
+                # process one <note> (also below)
+                $Notes[] = [$NoteMatches[0], $currentIndicator]; # remember it
+                return "<sup class=\"fnref\">" . $currentIndicator++ . "</sup>"; # replace by indicator
               }
             , $content
             );
           # replace container content by content without notes, plus all notes added behind it
-          return $stag . $content . $etag . "\n" . ($Notes ? implode("\n", $Notes) . "\n" : "");
+          return $stag . $content . $etag . "\n" . $this->formatNotes($Notes);
         }
       , $text
       );
@@ -338,36 +339,49 @@ class Replacer
         {
           $headings = $Matches[1];
           $Notes = [];
+          $currentIndicator = "a";
           $headings = preg_replace_callback(
               "@" . self::NOTEELEMENT_1CONTENTS . "@su"
-            , function($NoteMatches) use (&$Notes)
+            , function($NoteMatches) use (&$Notes, &$currentIndicator)
               {
-                # process one <note>
-                $Notes[] = $NoteMatches[0]; # remember it
-                return "";                  # replace by empty string
+                # process one <note> (also above)
+                $Notes[] = [$NoteMatches[0], $currentIndicator]; # remember it
+                return "<sup class=\"fnref\">" . $currentIndicator++ . "</sup>"; # replace by indicator
               }
             , $headings
             );
           # replace container content by content without notes, plus all notes added behind it
-          return $headings . "\n" . ($Notes ? implode("\n", $Notes) . "\n" : "");
+          return $headings . "\n" . $this->formatNotes($Notes);
         }
       , $text
       );
     return $text;
   }
 
+  function formatNotes($Notes)
+  {
+    if (!$Notes) {
+      return "";
+    }
+    $Result = [];
+    foreach ($Notes as $Note) {
+      list($text, $indicator) = $Note;
+      $Result[] = $this->convert1Note($text, $indicator);
+    }
+    return implode("\n", $Result) . "\n";
+  }
 
-  function convertNote($text)
+  function convert1Note($text, $indicator)
   {
     $referenceElement_1contents = "<reference\b" . self::TAGREST . "(.*?)</reference\b\s*>";
     $catchWordElement_1contents = "<catchWord\b" . self::TAGREST . "(.*?)</catchWord\b\s*>";
 
     # change note to div
     $text = preg_replace_callback("@" . self::NOTEELEMENT_1CONTENTS . "@su",
-      function($Matches) use ($referenceElement_1contents, $catchWordElement_1contents) {
+      function($Matches) use ($referenceElement_1contents, $catchWordElement_1contents, $indicator) {
         $content = $Matches[1];
         $content = preg_replace("@$referenceElement_1contents\s*(?:$catchWordElement_1contents)?(.*)@su"
-        , "<div class=\"fn\">$1 " . ("$2" ? "<em>$2</em>" : "") . "$3</div>"
+        , "<p class=\"fn\"><span class=\"ref\">$1</span><sup class=\"ind\">$indicator</sup>" . ("$2" ? " <span class=\"word\">$2</span>" : "") . "<span class=\"text\">$3</span></p>"
         , $content);
         return $content;
       }

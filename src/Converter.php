@@ -148,7 +148,6 @@ class Converter
 
     $text = $this->Replacer->moveNoteBehindBlock($text);
     $text = $this->Replacer->moveNoteBehindH($text);
-    $text = $this->Replacer->convertNote($text);
     $text = $this->Replacer->convertLg($text);
 
     return $text;

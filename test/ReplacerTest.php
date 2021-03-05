@@ -427,8 +427,8 @@ EOEXP;
 <p>Na <note placement="foot"><reference type="annotateRef">3:17</reference> <catchWord>word:</catchWord> 16.</note>word</p>
 EOTEXT;
       $exp = <<<EOEXP
-<p>Na word</p>
-<note placement="foot"><reference type="annotateRef">3:17</reference> <catchWord>word:</catchWord> 16.</note>
+<p>Na <sup class="fnref">a</sup>word</p>
+<p class="fn"><span class="ref">3:17</span><sup class="ind">a</sup> <span class="word">word:</span><span class="text"> 16.</span></p>
 
 EOEXP;
       $this->assertEquals($exp, $this->Replacer->moveNoteBehindBlock($text));
@@ -441,9 +441,9 @@ EOEXP;
 <l level="1">L</l></lg>
 EOTEXT;
       $exp = <<<EOEXP
-<lg><l level="1">Na word</l>
+<lg><l level="1">Na <sup class="fnref">a</sup>word</l>
 <l level="1">L</l></lg>
-<note placement="foot"><reference type="annotateRef">3:17</reference> <catchWord>word:</catchWord> 16.</note>
+<p class="fn"><span class="ref">3:17</span><sup class="ind">a</sup> <span class="word">word:</span><span class="text"> 16.</span></p>
 
 EOEXP;
       $this->assertEquals($exp, $this->Replacer->moveNoteBehindBlock($text));
@@ -456,29 +456,24 @@ EOEXP;
 <verse osisID="Ps.6.1" sID="Ps.6.1"/>
 EOTEXT;
       $exp = <<<EOEXP
-<h3>D</h3><h3 class="psalm">@H. @N E.</h3>
-<note placement="foot"><reference type="annotateRef">6:0</reference> <catchWord>Sh:</catchWord> H.</note>
+<h3>D</h3><h3 class="psalm">@H. @N<sup class="fnref">a</sup> E.</h3>
+<p class="fn"><span class="ref">6:0</span><sup class="ind">a</sup> <span class="word">Sh:</span><span class="text"> H.</span></p>
 <verse osisID="Ps.6.1" sID="Ps.6.1"/>
 EOEXP;
       $this->assertEquals($exp, $this->Replacer->moveNoteBehindH($text));
     }
-    public function testConvertNote()
+    public function testConvert1Note()
     {
       $text = <<<EOTEXT
 <p>Na word</p>
 <note placement="foot"><reference type="annotateRef">3:17</reference> <catchWord>word:</catchWord> 16.</note>
-<l level="1">Na word</l>
-<l level="1">L</l></lg>
-<note placement="foot"><reference type="annotateRef">3:18</reference> <catchWord>word:</catchWord> 16.</note>
 EOTEXT;
       $exp = <<<EOEXP
 <p>Na word</p>
-<div class="fn">3:17 <em>word:</em> 16.</div>
-<l level="1">Na word</l>
-<l level="1">L</l></lg>
-<div class="fn">3:18 <em>word:</em> 16.</div>
+<p class="fn"><span class="ref">3:17</span><sup class="ind">b</sup> <span class="word">word:</span><span class="text"> 16.</span></p>
 EOEXP;
-      $this->assertEquals($exp, $this->Replacer->convertNote($text));
+      $indicator = "b";
+      $this->assertEquals($exp, $this->Replacer->convert1Note($text, $indicator));
     }
 
     public function testConvertLg()
