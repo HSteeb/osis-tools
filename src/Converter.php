@@ -146,7 +146,8 @@ class Converter
     $text = $this->Replacer->convertVerseStart($text, $this->Config["chapterVerseSep"]);
 
 
-    $text = $this->Replacer->moveNote($text);
+    $text = $this->Replacer->moveNoteBehindBlock($text);
+    $text = $this->Replacer->moveNoteBehindH($text);
     $text = $this->Replacer->convertNote($text);
     $text = $this->Replacer->convertLg($text);
 

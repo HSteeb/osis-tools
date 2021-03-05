@@ -9,7 +9,7 @@ class Replacer
   private const EQ      = "\s*=\s*";
   private const TAGREST = "[^>]*>";
   private const CHAPTERSTART_1NUMBER = "<chapter\b[^>]*?\bsID" . self::EQ . self::Q . "\s*\w+\.(\d+)\s*" . self::Q . "[^>]*>";
-  private const NOTEELEMENT_1CONTENTS = "<note\b" . self::TAGREST . "(.*?)</note\b\s*>";
+  private const NOTEELEMENT_1CONTENTS = "<note\b" . self::TAGREST . "(.*?)</note\s*>";
 
   function getChapterNumbers($text)
   {
@@ -302,7 +302,7 @@ class Replacer
   }
 
 
-  function moveNote($text)
+  function moveNoteBehindBlock($text)
   {
     $text = preg_replace_callback(
         "@(<(lg|p)\b" . self::TAGREST . ")(.*?)(</\\2\s*>)\s*@su"
@@ -323,6 +323,33 @@ class Replacer
             );
           # replace container content by content without notes, plus all notes added behind it
           return $stag . $content . $etag . "\n" . ($Notes ? implode("\n", $Notes) . "\n" : "");
+        }
+      , $text
+      );
+    return $text;
+  }
+
+
+  function moveNoteBehindH($text)
+  {
+    $text = preg_replace_callback(
+        "@((?:\s*<(h\d)\b" . self::TAGREST . ".*?</\\2\s*>)+)\s*@su" # match a sequence of headings
+      , function($Matches)
+        {
+          $headings = $Matches[1];
+          $Notes = [];
+          $headings = preg_replace_callback(
+              "@" . self::NOTEELEMENT_1CONTENTS . "@su"
+            , function($NoteMatches) use (&$Notes)
+              {
+                # process one <note>
+                $Notes[] = $NoteMatches[0]; # remember it
+                return "";                  # replace by empty string
+              }
+            , $headings
+            );
+          # replace container content by content without notes, plus all notes added behind it
+          return $headings . "\n" . ($Notes ? implode("\n", $Notes) . "\n" : "");
         }
       , $text
       );
@@ -375,7 +402,7 @@ class Replacer
 
     # drop verse.eID
     $text = preg_replace("@$verseEnd@su", "", $text);
-    # drop /div
+    # drop </div>
     $text = preg_replace("@$divEnd@", "", $text);
 
     return $text;

@@ -431,7 +431,7 @@ EOTEXT;
 <note placement="foot"><reference type="annotateRef">3:17</reference> <catchWord>word:</catchWord> 16.</note>
 
 EOEXP;
-      $this->assertEquals($exp, $this->Replacer->moveNote($text));
+      $this->assertEquals($exp, $this->Replacer->moveNoteBehindBlock($text));
     }
 
     public function testMoveNoteBehindLG()
@@ -446,9 +446,22 @@ EOTEXT;
 <note placement="foot"><reference type="annotateRef">3:17</reference> <catchWord>word:</catchWord> 16.</note>
 
 EOEXP;
-      $this->assertEquals($exp, $this->Replacer->moveNote($text));
+      $this->assertEquals($exp, $this->Replacer->moveNoteBehindBlock($text));
     }
 
+    public function testMoveNoteBehindH()
+    {
+      $text = <<<EOTEXT
+<h3>D</h3><h3 class="psalm">@H. @N<note placement="foot"><reference type="annotateRef">6:0</reference> <catchWord>Sh:</catchWord> H.</note> E.</h3>
+<verse osisID="Ps.6.1" sID="Ps.6.1"/>
+EOTEXT;
+      $exp = <<<EOEXP
+<h3>D</h3><h3 class="psalm">@H. @N E.</h3>
+<note placement="foot"><reference type="annotateRef">6:0</reference> <catchWord>Sh:</catchWord> H.</note>
+<verse osisID="Ps.6.1" sID="Ps.6.1"/>
+EOEXP;
+      $this->assertEquals($exp, $this->Replacer->moveNoteBehindH($text));
+    }
     public function testConvertNote()
     {
       $text = <<<EOTEXT
