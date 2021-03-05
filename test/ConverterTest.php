@@ -83,9 +83,8 @@ EOTEXT
 <h2 id="top" class="main">S</h2>
 <p class="chapterLinks">
 <a href="#1">1</a></p>
-</div>
+</div><p id="1" class='chapter'><a href="#top">1</a></p>
 <h3>Izip Ram ih Israel Tuarnak</h3>
-<p id="1" class='chapter'><a href="#top">1</a></p>
 
 EOEXP;
       $this->assertEquals($exp, $this->Converter->testConvert($text));

@@ -265,8 +265,8 @@ EOEXP;
 EOTEXT;
       $exp = <<<EOEXP
 <p/>
-<h3>S</h3>
 <p id="1" class='chapter'><a href="#top">1</a></p>
+<h3>S</h3>
 <verse osisID="Gen.1.1" sID="Gen.1.1"/><p>A.<verse eID="Gen.1.1"/>
 EOEXP;
       $this->assertEquals($exp, $this->Replacer->convertChapterTags($text, "top"));
@@ -312,9 +312,8 @@ EOEXP;
 <div type="section"><title>B</title><div type="subSection"><title level="2">BT</title>
 EOTEXT;
       $exp = <<<EOEXP
-
-<h3>B</h3>
 <p id="26" class='chapter'><a href="#top">26</a></p>
+<h3>B</h3>
 <h4>BT</h4>
 EOEXP;
       $this->assertEquals($exp, $this->Replacer->convertChapterTags($text, "top"));
