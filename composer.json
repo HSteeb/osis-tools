@@ -15,6 +15,7 @@
     },
     "scripts": {
       "test": "vendor/bin/phpunit"
+    , "build": "cat src/osis2htmlSrc.php src/Converter.php src/Replacer.php | grep -v namespace | grep -v 'use HSteeb' | grep -v 'vendor/autoload.php' > osis2html.php"
     },
     "license": "MIT",
     "authors": [
