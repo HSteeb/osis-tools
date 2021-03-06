@@ -11,6 +11,27 @@ class Replacer
   private const CHAPTERSTART_1NUMBER = "<chapter\b[^>]*?\bsID" . self::EQ . self::Q . "\s*\w+\.(\d+)\s*" . self::Q . "[^>]*>";
   private const NOTEELEMENT_1CONTENTS = "<note\b" . self::TAGREST . "(.*?)</note\s*>";
 
+  /**
+   * @param {String} $osis the XML text. Note that XML special characters in the text are masked: e.g. "&lt;"
+   * @param {Array|null} $ReplaceArray array of two arrays of equal size, to be replaced element-wise (PHP: str_replace)
+   * e.g. [ ["@", "&lt;&lt;", "&gt;&gt;"], ["", "\u{00ab}", "\u{00bb}"] ]
+   * replaces "@" by empty string, XML masked angle brackets "<<"/">>" by typographic guillemets (Unicode U+00AB/U+00BB)
+   */
+  function replaceArray($osis, $ReplaceArray)
+  {
+    if ($ReplaceArray) {
+      if (!is_array($ReplaceArray) || count($ReplaceArray) != 2
+          || !is_array($ReplaceArray[0]) || !is_array($ReplaceArray[1])
+          || count($ReplaceArray[0]) != count($ReplaceArray[1])
+          ) {
+        throw new \Exception("ReplaceArray must be null or array containing two arrays of equal size");
+      }
+      $osis = str_replace($ReplaceArray[0], $ReplaceArray[1], $osis);
+    }
+    return $osis;
+  }
+
+
   function getChapterNumbers($text)
   {
     #echo "a: getChaptersToc($text)\n";

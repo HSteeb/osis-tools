@@ -30,6 +30,11 @@ class Converter
    * - bookNameMt: filename of Matthew, for separating OT and NT in the table of contents
    * - otTitle: heading of OT in table of contents
    * - ntTitle: heading of NT in table of contents
+   * - replace: (optional) array containing two sub-arrays with strings to replace, element-wise;
+   *     * XML special characters to be replaced must be written in the masked form like "&lt;&gt;&amp;"
+   *     * [ ["@", "&lt;&lt;", "&gt;&gt;"], ["", "\u{00ab}", "\u{00bb}"] ]
+   *     * replaces "@" by empty string, XML masked angle brackets "<<"/">>" by typographic guillemets (Unicode U+00AB/U+00BB)
+   *     * Note: PHP 7 "\u{00ab}" = JSON "\u00ab".
    */
   function __construct($Config = [])
   {
@@ -79,6 +84,9 @@ class Converter
 
   private function convert($osis)
   {
+    if (isset($this->Config["replace"])) {
+      $osis = $this->Replacer->replaceArray($osis, $this->Config["replace"]);
+    }
     return
         $this->getHeader($osis)
       . $this->getBody($osis)

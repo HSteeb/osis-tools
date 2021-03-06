@@ -18,6 +18,41 @@ class ReplacerTest extends  \PHPUnit\Framework\TestCase
         $this->assertNotNull($this->Replacer);
     }
 
+    public function testReplaceArrayNull()
+    {
+       $this->assertEquals("osis", $this->Replacer->replaceArray('osis', null));
+       $this->assertEquals("osis", $this->Replacer->replaceArray('osis', []));
+    }
+
+    public function testReplaceArrayNonArray()
+    {
+       $this->expectExceptionMessage('ReplaceArray must be');
+       $this->Replacer->replaceArray('osis', "null");
+    }
+
+    public function testReplaceArrayNotPaired()
+    {
+       $this->expectExceptionMessage('ReplaceArray must be');
+       $this->Replacer->replaceArray('osis', [["from"]]);
+    }
+
+    public function testReplaceArrayNonArrays()
+    {
+       $this->expectExceptionMessage('ReplaceArray must be');
+       $this->Replacer->replaceArray('osis', ["1", "2"]);
+    }
+
+    public function testReplaceArraySizeMismatch()
+    {
+       $this->expectExceptionMessage('ReplaceArray must be');
+       $this->Replacer->replaceArray('osis', [["1"], ["2", "3"]]);
+    }
+
+    public function testReplaceArray()
+    {
+       $this->assertEquals("a \u{ab}X>>", $this->Replacer->replaceArray('a &lt;&lt;@X>>', [ ["@", "&lt;&lt;"], ["", "\u{00ab}"] ]));
+    }
+
     public function testFormatBooksToc()
     {
       $Map = [
