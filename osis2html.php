@@ -53,8 +53,8 @@ class Converter
   private const DEFAULTCONFIG = [
     "chapterVerseSep" => ","
   , "rootID"          => "top"
-  , "header"          => ""
-  , "footer"          => ""
+  , "header"          => "<!DOCTYPE html>\n<html>\n<head>\n<title>%title;</title>\n<meta charset=\"utf-8\">\n</head>\n<body>\n"
+  , "footer"          => "</body>\n</html>\n"
   , "bookNames"       => []
   , "bookNameMt"      => "Mt"
   , "otTitle"         => "Old Testament"

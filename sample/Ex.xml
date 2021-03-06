@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osis xmlns="http://www.bibletechnologies.net/2003/OSIS/namespace" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.bibletechnologies.net/2003/OSIS/namespace http://www.crosswire.org/~dmsmith/osis/osisCore.2.1.1-cw-latest.xsd">
+<osisText osisRefWork="Bible" xml:lang="und" osisIDWork="-x">
+<header>
+<work osisWork="-x"/>
+</header>
+<div type="book" osisID="Exod" canonical="true">
+<title type="runningHead">Exodus</title><milestone type="x-usfm-toc3" n="Ex"/>
+<milestone type="x-usfm-toc2" n="EXODUS"/>
+<milestone type="x-usfm-toc1" n="EXODUS"/>
+<title level="1" type="main">EXODUS</title><list>
+<item type="x-indent-1" subType="x-introduction">Die 5 Bücher Mose...</item></list>
+<p subType="x-introduction">Text text text...</p><div type="outline" subType="x-introduction"><list><head>Die Erschaffung der Welt</head>
+<item type="x-indent-1" subType="x-introduction">I. Text...
+<reference>(1-18)</reference></item>
+<item type="x-indent-1" subType="x-introduction">II. Text...
+<reference>(19-40)</reference></item></list></div>
+<chapter osisID="Exod.1" sID="Exod.1"/>
+<verse osisID="Exod.1.1" sID="Exod.1.1"/><p>Dies sind die Namen der Kinder Israel, die mit Jakob nach Ägypten kamen; ein jeglicher kam mit seinem Hause hinein:<verse eID="Exod.1.1"/>
+<verse osisID="Exod.1.2" sID="Exod.1.2"/>Ruben, Simeon, Levi, Juda,<verse eID="Exod.1.2"/>
+<verse osisID="Exod.1.3" sID="Exod.1.3"/>Issakar, Zebulun le Benjamin,<verse eID="Exod.1.3"/>
+<verse osisID="Exod.1.4" sID="Exod.1.4"/>Dan, Naphthali, Gad, Asser.</p><div type="section"><verse eID="Exod.1.4"/>
+</div>
+<chapter eID="Exod.1"/>
+</div>
+</osisText>
+</osis>

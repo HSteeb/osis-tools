@@ -1,0 +1,15 @@
+{
+  "chapterVerseSep": ":"
+, "rootID"         : "top"
+, "bookNameMt"     : "Mt"
+, "otTitle"        : "Old Testament"
+, "ntTitle"        : "New Testament"
+, "replace"        : [["@", "&lt;&lt;", "&gt;&gt;", "&lt;", "&gt;"], ["", "\u00ab", "\u00bb", "\u2039", "\u203A"]]
+, "header": "<html>\n<head>\n<title>%title;</title>\n<link rel=\"stylesheet\" type=\"text/css\" href=\"styles.css\">\n<meta charset=\"utf-8\">\n</head>\n<body class=\"bible\">\n<div id=\"content\" class=\"container\">\n<div class=\"row\">\n<div class=\"col-md-12\">\n"
+, "footer": "</div>\n</div>\n</div>\n</body>\n</html>\n"
+, "bookNames":
+{
+  "Gn": "Genesis"
+, "Ex": "Exodus"
+}
+}

@@ -1,0 +1,105 @@
+/* ----------------------------------------------------------------------
+Sample style sheet for output of osis2html.php
+------------------------------------------------------------------------*/
+
+.bible .container {
+  padding-left: 10em;
+  padding-right: 10em;
+}
+
+.bible h3 {
+  margin-top: 30px;
+}
+
+.bible h4 {
+  margin-top: 30px;
+}
+
+.bible   h3, h4 {
+  color: #8ae400;
+}
+
+.bible p {
+  text-align: justify;
+}
+
+.bible .main {
+  font-size: 1.4em;
+  font-weight: bold;
+}
+
+.bible  .bookLinks {
+  font-weight: bold;
+}
+
+.bible .bookLinks a,
+.bible .chapterLinks a {
+  /* increase size of click target */
+  width: 2em;
+  height: 1.8em;
+  display: inline-block;
+  text-align: center; /* avoid text sitting at the right end */
+}
+
+.bible .chapter {
+  font-size: 4em;
+  font-weight: bold;
+  line-height: 0;
+  position: relative;
+  left: -2em; /* move chapter number left, at most 3 digit chapter numbers in Ps */
+  top: 0.8em;
+  /**
+   * Fake the chapter number to be rather high,
+   * so that the browser shows it and some space before
+   * when navigating to the number:
+   * - 1em makes the number and the text have some white-space above,
+   * - 2em shows some text of the previous chapter
+   */
+  padding-top: 2em;
+  margin-top: -2em;
+}
+
+/**
+ * Move the following element up, to be top-aligned with the chapter number
+ */
+.bible .chapter +h3
+.bible .chapter +p,
+.bible .chapter +ul {
+  margin-top: -2em;
+}
+
+.bible .cite {
+  text-align: left;
+  margin-left: 1em;
+}
+
+.bible sup.fnref  {
+  color: darkgray;
+  font-size: 0.7em;
+  margin-left: 0.1em;      
+  margin-right: 0.1em;      
+}
+
+.bible .fn  {
+  color: darkgray;
+  font-size: 0.85em;
+  line-height: 1.2em;
+  margin: 0 3em;
+}
+.bible .fn .ref {
+  font-weight: bold;
+}
+.bible .fn .ind {
+  font-size: 0.85em;
+  margin-left: 0.1em;      
+}
+.bible .fn.word {
+  font-style: italic;
+}
+
+.bible  .verse  {
+  color: #c00000;
+  font-size: .83em;
+  vertical-align: super;
+}
+
