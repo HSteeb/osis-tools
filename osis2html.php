@@ -65,21 +65,7 @@ class Converter
   private $Config;
 
   /**
-   * @param {Array} $Config options:
-   * - chapterVerseSep: separator "," in Genesis 1,2
-   * - rootID: (optional) id of HTML element, the link target for navigating to the start of the file
-   * - header: HTML header including start of body, up to before the generated content.
-   *     * %title; will be replaced by the title from the file.
-   * - footer: HTML footer including end of body, after the generated content
-   * - bookNames: array of filename => Bible book name (for table of contents)
-   * - bookNameMt: filename of Matthew, for separating OT and NT in the table of contents
-   * - otTitle: heading of OT in table of contents
-   * - ntTitle: heading of NT in table of contents
-   * - replace: (optional) array containing two sub-arrays with strings to replace, element-wise;
-   *     * XML special characters to be replaced must be written in the masked form like "&lt;&gt;&amp;"
-   *     * [ ["@", "&lt;&lt;", "&gt;&gt;"], ["", "\u{00ab}", "\u{00bb}"] ]
-   *     * replaces "@" by empty string, XML masked angle brackets "<<"/">>" by typographic guillemets (Unicode U+00AB/U+00BB)
-   *     * Note: PHP 7 "\u{00ab}" = JSON "\u00ab".
+   * @param {Array} $Config options: see README.
    */
   function __construct($Config = [])
   {

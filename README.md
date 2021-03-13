@@ -13,10 +13,13 @@ Without a config file, the script generates a rudimentary HTML HEAD with `<title
 The generated HTML contains some `class` attributes for styling.
 
 As of 2021-03, I used the script with the output of one converter
-(refdoc, see References below), for one Bible. So it may need
+(refdoc, see References below), for two Bibles. So it may need
 adaptations for other OSIS flavors, or other Bibles.
 
-Example output: [BibleThianghlim on bible2.net](https://bible2.net/bible/BibleThianghlim/Gn.html) (as of 2021-03).
+Example output:
+
+- [Bible Thianghlim on bible2.net](https://bible2.net/bible/BibleThianghlim/Gn.html) (as of 2021-03)
+- [Portuguese Bíblia Livre on bible2.net](https://bible2.net/bible/PortugueseBibliaLivre/Gn.html) (as of 2021-03)
 
 
 ## HTML Output Details
@@ -69,6 +72,8 @@ Run the script on the sample OSIS files:
 .../osis2html> php osis2html.php sample/Ex.xml sample/Ex.html sample/config-en.json
 ~~~
 
+Alternative: simply run `make sample`.
+
 Inspect `sample/Gn.html` in your browser (Chrome may refuse to show the local file, Firefox shows it).
 
 ## Contributing
@@ -77,6 +82,7 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/hsteeb
 
 ### Basics
 
+- For development, you'll need additional tools, see Prerequisites below.
 - The implementation mainly uses regular expressions (PHP `preg_replace`), grouped in several methods which are under unit test.
     * The regex patterns are defensive, to allow for white-space and attributes at places where XML allows them.
     * They assume well-formed XML input.
@@ -91,13 +97,18 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/hsteeb
 - CDATA sections
 - Processing instructions
 
+### OSIS features not especially handled
+
+- References
+- likely many more...
+
 ### Prerequisites
 
 For development (I'm working under Ubuntu Linux), you need:
 
 - composer (PHP package manager)
     * `composer.json` installs PHPunit for unit tests
-- cat, grep (GNU file utils, for building the single-file version)
+- make, cat, grep (GNU file utils, for building the single-file version)
 
 ### Steps
 
@@ -112,13 +123,13 @@ composer install
 Run the unit tests:
 
 ```
-composer test
+make test
 ```
 
 Build the single-file version `./osis2html.php`:
 
 ```
-composer build
+make build
 ```
 
 ### Integration test
@@ -130,45 +141,11 @@ source OSIS files and a folder of reference HTML files:
 
 ~~~
 itest/
-  itest.sh      Generates from src/ to /tmp; run like: itest/itest.sh
-  idiff.sh      Compares the recently generated files with ref/; run like: itest/idiff.sh|more
-  isave.sh      Saves the recently generated files to ref/; run like: itest/isave.sh
   src/          OSIS xml files
   ref/          Generated HTML files
 ~~~
 
-The shell scripts look like:
-
-itest.sh
-
-~~~
-# Usage:
-# Bible> itest/itest.sh
-
-mkdir -p /tmp/osis2htmltest &&\
-  php osis2html.php itest/src/Gn.xml /tmp/osis2htmltest/Gn.html config-en.json && \
-  php osis2html.php itest/src/Ex.xml /tmp/osis2htmltest/Ex.html config-en.json && \
-  php osis2html.php itest/src/Ps.xml /tmp/osis2htmltest/Ps.html config-en.json && \
-  diff -r itest/ref /tmp/osis2htmltest
-~~~
-
-idiff.sh
-
-~~~
-# Usage:
-# Bible> itest/idiff.sh
-
-diff -r itest/ref /tmp/osis2htmltest
-~~~
-
-isave.sh
-
-~~~
-# Usage:
-# Bible> itest/isave.sh
-
-cp -a /tmp/osis2htmltest/* itest/ref/
-~~~
+See the makefile targets `itest`, `idiff` and `isave`.
 
 ## License
 
