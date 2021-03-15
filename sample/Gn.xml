@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osis xmlns="http://www.bibletechnologies.net/2003/OSIS/namespace" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.bibletechnologies.net/2003/OSIS/namespace http://www.crosswire.org/~dmsmith/osis/osisCore.2.1.1-cw-latest.xsd">
+<osisText osisRefWork="Bible" xml:lang="und" osisIDWork="-x">
+<header>
+<work osisWork="-x"/>
+</header>
+<div type="book" osisID="Gen" canonical="true">
+<title type="runningHead">1. Mose</title><milestone type="x-usfm-toc3" n="Gen"/>
+<title level="1" type="main">1. Mose</title><list>
+<item type="x-indent-1" subType="x-introduction">Die 5 Bücher Mose...</item></list>
+<p subType="x-introduction">Text text text...</p><div type="outline" subType="x-introduction"><list><head>Die Erschaffung der Welt</head>
+<item type="x-indent-1" subType="x-introduction">I. Genesis <reference>(1-11)</reference></item>
+<item type="x-indent-1" subType="x-introduction">II. Abraham <reference>(12-50)</reference></item></list></div>
+<chapter osisID="Gen.1" sID="Gen.1"/>
+<div type="section"><title>Die <note placement="foot"><reference type="annotateRef">1:0</reference> <catchWord>Schöpfung:</catchWord> Genesis.</note>Schöpfung</title>
+<verse osisID="Gen.1.1" sID="Gen.1.1"/><p>Am Anfang schuf Gott Himmel und Erde.<verse eID="Gen.1.1"/>
+<verse osisID="Gen.1.2" sID="Gen.1.2"/>Und die Erde war <note placement="foot"><reference type="annotateRef">1,2</reference> <catchWord>wüst und leer:</catchWord> Tohuwabohu.</note>wüst und leer, und es war finster auf der Tiefe; und der Geist Gottes schwebte auf dem <note placement="foot"><reference type="annotateRef">1:2</reference> <catchWord>Wasser:</catchWord> Text...</note>Wasser.</p><verse eID="Gen.1.2"/>
+<verse osisID="Gen.1.3" sID="Gen.1.3"/><p>Und Gott sprach: Es werde Licht! und es ward Licht.<verse eID="Gen.1.3"/>
+<verse osisID="Gen.1.4" sID="Gen.1.4"/>Und Gott sah, dass das Licht gut war. Da schied Gott das Licht von der Finsternis<verse eID="Gen.1.4"/>
+<verse osisID="Gen.1.5" sID="Gen.1.5"/>und nannte das Licht Tag und die Finsternis Nacht. Da ward aus Abend und Morgen der erste Tag.</p></div><verse eID="Gen.1.5"/>
+<div type="section"><title>Gott sprach</title>
+<verse osisID="Gen.1.6" sID="Gen.1.6"/><p>Und Gott sprach: Es werde eine Feste zwischen den Wassern, und die sei ein Unterschied zwischen den Wassern.</p><verse eID="Gen.1.6"/>
+</div>
+<chapter eID="Gen.1"/>
+<chapter osisID="Gen.2" sID="Gen.2"/>
+<div type="section"><title>Der Mensch</title>
+<verse osisID="Gen.2.1" sID="Gen.2.1"/><p>Also ward vollendet Himmel und Erde mit ihrem ganzen Heer.<verse eID="Gen.2.1"/>
+<verse osisID="Gen.2.2" sID="Gen.2.2"/>Und also vollendete Gott am siebenten Tage seine Werke, die er machte, und ruhte am siebenten Tage von allen seinen Werken, die er machte.<verse eID="Gen.2.2"/>
+<verse osisID="Gen.2.3" sID="Gen.2.3"/>Und Gott segnete den siebenten Tag und heiligte ihn, darum dass er an demselben geruht hatte von allen seinen Werken, die Gott schuf und machte.</p></div><verse eID="Gen.2.3"/>
+<chapter eID="Gen.2"/>
+</div>
+</osisText>
+</osis>

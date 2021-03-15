@@ -1,10 +1,10 @@
 {
-    "name": "hsteeb/osis2html",
-    "description": "osis to HTML converter",
+    "name": "hsteeb/osis-tools",
+    "description": "OSIS Bible format conversion",
     "type": "project",
     "autoload": {
         "psr-4": {
-            "HSteeb\\osis2html\\": "src/"
+            "HSteeb\\OsisTools\\": "src/"
          }
     },
     "require": {
@@ -12,9 +12,6 @@
     },
     "require-dev": {
         "phpunit/phpunit": "^9.5"
-    },
-    "scripts": {
-      "test": "vendor/phpunit/phpunit/phpunit"
     },
     "license": "MIT",
     "authors": [
