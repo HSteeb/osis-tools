@@ -1,6 +1,6 @@
-# osis2html.php
+# osis-tools
 
-OSIS (XML standard for Bibles) to HTML converter.
+OSIS Bible format conversion: OSIS to HTML converter.
 
 ## Usage
 
@@ -68,8 +68,8 @@ Subfolder `sample/` contains
 Run the script on the sample OSIS files:
 
 ~~~
-.../osis2html> php osis2html.php sample/Gn.xml sample/Gn.html sample/config-en.json
-.../osis2html> php osis2html.php sample/Ex.xml sample/Ex.html sample/config-en.json
+.../osis-tools> php osis2html.php sample/Gn.xml sample/Gn.html sample/config-en.json
+.../osis-tools> php osis2html.php sample/Ex.xml sample/Ex.html sample/config-en.json
 ~~~
 
 Alternative: simply run `make sample`.
@@ -78,7 +78,7 @@ Inspect `sample/Gn.html` in your browser (Chrome may refuse to show the local fi
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/hsteeb/osis2html.
+Bug reports and pull requests are welcome on GitHub at https://github.com/hsteeb/osis-tools.
 
 ### Basics
 
@@ -115,7 +115,7 @@ For development (I'm working under Ubuntu Linux), you need:
 Clone the repository and get the necessary composer packages:
 
 ```
-git clone https://github.com/hsteeb/osis2html.git
+git clone https://github.com/hsteeb/osis-tools.git
 sudo apt-get install composer
 composer install
 ```
@@ -123,7 +123,7 @@ composer install
 Run the unit tests:
 
 ```
-make test
+make phpunit
 ```
 
 Build the single-file version `./osis2html.php`:

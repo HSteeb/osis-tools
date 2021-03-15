@@ -1,5 +1,5 @@
 # 2021-03-13 HSteeb
-# makefile for osis2html
+# makefile for osis-tools
 
 
 # === RULES ==========================
@@ -7,10 +7,6 @@
 # have non-dangerous first target...
 .PHONY: info
 info:
-	@echo ""
-	@echo "All Tests"
-	@echo ""
-	@echo "  - test       : runs unit tests and integration tests"
 	@echo ""
 	@echo "Unit Tests"
 	@echo "  - phpunit    : runs PHP unit tests"
@@ -25,15 +21,13 @@ info:
 	@echo "  - idiff      : compare results"
 	@echo "  - isave      : record results"
 	@echo ""
+	@echo "Run sample"
+	@echo "  - sample     : runs osis2html.php on sample/Gn.xml"
+	@echo ""
 	@echo "General"
 	@echo "  - info       : this text"
 
 
-
-# === All Tests ====================
-
-.PHONY: test 
-test: itest phpunit
 
 # === Unit Test ====================
 .PHONY: phpunit
@@ -56,6 +50,8 @@ isave:
 
 # === Sample ===================
 sample: build
-	@php src/osis2html.php sample/Gn.xml /tmp/Gn.html sample/config-en.json
+	@php ./osis2html.php sample/Gn.xml /tmp/Gn.html sample/config-en.json
+	@cp sample/styles.css /tmp
+	@echo Now please inspect /tmp/Gn.html...
 
 # === /RULES =========================
